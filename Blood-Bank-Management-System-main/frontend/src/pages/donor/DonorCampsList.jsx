@@ -19,8 +19,6 @@ import {
   ListPlus,
 } from "lucide-react";
 
-// NOTE: Ensure this URL matches your running backend API endpoint
-const API_BASE_URL = `${API_BASE_URL}`;
 
 const STATUS_OPTIONS = [
   { value: "all", label: "All Camps" },
