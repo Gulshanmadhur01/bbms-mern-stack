@@ -1,3 +1,4 @@
+import API_BASE_URL from "../../utils/apiConfig.js";
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import {
@@ -20,7 +21,7 @@ import {
   Building2
 } from 'lucide-react';
 
-const API_URL = "http://localhost:5000/api/admin";
+const API_URL = `${API_BASE_URL}/admin`;
 
 function GetAllFacilities() {
   const [facilities, setFacilities] = useState([]);

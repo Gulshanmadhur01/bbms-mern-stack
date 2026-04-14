@@ -1,3 +1,4 @@
+import API_BASE_URL from "../../utils/apiConfig.js";
 import React, { useEffect, useState } from "react";
 import { 
   Calendar, 
@@ -62,7 +63,7 @@ const BloodCamps = () => {
 
   const token = localStorage.getItem("token");
   // Fixed API URL - removed /blood-lab if it doesn't exist
-  const API_URL = "http://localhost:5000/api/blood-lab";
+  const API_URL = `${API_BASE_URL}/blood-lab`;
 
   console.log("🔧 BloodCamps Component State:", {
     campsCount: camps.length,

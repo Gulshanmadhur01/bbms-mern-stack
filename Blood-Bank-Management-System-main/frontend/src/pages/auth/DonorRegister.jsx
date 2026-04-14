@@ -1,7 +1,9 @@
+import API_BASE_URL from "../../utils/apiConfig.js";
 "use client";
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { indiaData } from "../../utils/indiaData";
 
 // Constants for better maintainability
 const GENDERS = ["Male", "Female", "Other"];
@@ -11,6 +13,7 @@ const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 // Validation functions
 const validators = {
   fullName: (value) => (!value.trim() ? "Full name is required" : ""),
+  fatherName: (value) => (!value.trim() ? "Father's name is required" : ""),
   email: (value) => {
     if (!value.trim()) return "Email is required";
     if (!/^\S+@\S+\.\S+$/.test(value)) return "Please enter a valid email address";
@@ -76,6 +79,7 @@ export default function DonorRegisterForm() {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     fullName: "",
+    fatherName: "",
     email: "",
     password: "",
     phone: "",
@@ -102,8 +106,7 @@ export default function DonorRegisterForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [touched, setTouched] = useState({});
 
-  const [statesList, setStatesList] = useState([]);
-const [citiesList, setCitiesList] = useState([]);
+  const locations = indiaData;
 
   // Handle form field changes
   const handleChange = (e) => {
@@ -188,7 +191,7 @@ const [citiesList, setCitiesList] = useState([]);
     const newErrors = {};
     
     const stepValidations = {
-      1: ["fullName", "email", "password", "phone", "emergencyContact"],
+      1: ["fullName", "fatherName", "email", "password", "phone", "emergencyContact"],
       2: ["dob", "gender", "bloodGroup", "healthInfo.weight", "healthInfo.height"],
       3: ["address.street", "address.city", "address.state", "address.pincode"],
     };
@@ -243,35 +246,7 @@ const [citiesList, setCitiesList] = useState([]);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
- const fetchCities = async (stateName) => {
-  try {
-    const cleanState = stateName.trim();   // ⭐ important
-
-    const res = await fetch("https://countriesnow.space/api/v0.1/countries/state/cities", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        country: "India",
-        state: cleanState,
-      }),
-    });
-
-    const data = await res.json();
-
-    console.log("API RESPONSE:", data);
-
-    if (data && data.data && data.data.length > 0) {
-      setCitiesList(data.data);
-    } else {
-      setCitiesList([]);
-      console.log("No cities found for:", cleanState);
-    }
-
-  } catch (err) {
-    console.log(err);
-    setCitiesList([]);
-  }
-};
+  // Removed fetchCities as we use local indiaData
 
   const handleSubmit = async (e) => {
     if (e && typeof e.preventDefault === 'function') {
@@ -288,6 +263,7 @@ const [citiesList, setCitiesList] = useState([]);
     const age = calculateAge(formData.dob);
     const submissionPayload = {
       fullName: formData.fullName,
+      fatherName: formData.fatherName,
       email: formData.email,
       password: formData.password,
       phone: formData.phone,
@@ -301,7 +277,7 @@ const [citiesList, setCitiesList] = useState([]);
       role: "donor",
     };
     
-        const API_URL = "http://localhost:5000/api/auth/register"; 
+        const API_URL = `${API_BASE_URL}/auth/register`; 
 
     
     console.log("Submitting Donor Data:", submissionPayload);
@@ -337,24 +313,7 @@ const [citiesList, setCitiesList] = useState([]);
   const shouldShowError = (fieldName) => {
     return touched[fieldName] && errors[fieldName];
   };
-   useEffect(() => {
-  const loadStates = async () => {
-    try {
-      const res = await fetch("https://countriesnow.space/api/v0.1/countries/states", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ country: "India" }),
-      });
-
-      const data = await res.json();
-      setStatesList(data.data.states);
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
-  loadStates();
-}, []);
+  // Removed loadStates as we use local indiaData
 
   const progressPercentage = (step / 3) * 100;
 
@@ -412,6 +371,29 @@ const [citiesList, setCitiesList] = useState([]);
                 {shouldShowError("fullName") && (
                   <p className="text-red-500 text-sm mt-1 flex items-center">
                     <span className="mr-1">⚠</span> {errors.fullName}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label htmlFor="fatherName" className="block font-medium mb-2">
+                  Father's Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="fatherName"
+                  type="text"
+                  name="fatherName"
+                  value={formData.fatherName}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition ${
+                    shouldShowError("fatherName") ? "border-red-500" : "border-gray-300"
+                  }`}
+                  placeholder="Enter your father's name"
+                />
+                {shouldShowError("fatherName") && (
+                  <p className="text-red-500 text-sm mt-1 flex items-center">
+                    <span className="mr-1">⚠</span> {errors.fatherName}
                   </p>
                 )}
               </div>
@@ -724,29 +706,27 @@ const [citiesList, setCitiesList] = useState([]);
                   <label htmlFor="state" className="block font-medium mb-2">
                     State <span className="text-red-500">*</span>
                   </label>
-                  <select
-                    id="state"
-                    name="address.state"
-                    value={formData.address.state}
-                   onChange={(e) => {
-  const selectedState = e.target.value.trim();   // ⭐ important
-  handleChange(e);
-  fetchCities(selectedState);
-
-  setFormData(prev => ({
-    ...prev,
-    address: { ...prev.address, city: "" },
-  }));
-}}
-                    onBlur={handleBlur}
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition ${
-                      shouldShowError("address.state") ? "border-red-500" : "border-gray-300"
-                    }`}
-                  >
-                   {statesList.map((state, index) => (
-  <option key={index} value={state.name}>{state.name}</option>
-))}
-                  </select>
+                    <select
+                      id="state"
+                      name="address.state"
+                      value={formData.address.state}
+                      onChange={(e) => {
+                        handleChange(e);
+                        setFormData(prev => ({
+                          ...prev,
+                          address: { ...prev.address, city: "" },
+                        }));
+                      }}
+                      onBlur={handleBlur}
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition ${
+                        shouldShowError("address.state") ? "border-red-500" : "border-gray-300"
+                      }`}
+                    >
+                      <option value="">Select State</option>
+                      {Object.keys(locations).map(state => (
+                        <option key={state} value={state}>{state}</option>
+                      ))}
+                    </select>
                   {shouldShowError("address.state") && (
                     <p className="text-red-500 text-sm mt-1 flex items-center">
                       <span className="mr-1">⚠</span> {errors["address.state"]}
@@ -759,21 +739,21 @@ const [citiesList, setCitiesList] = useState([]);
                     City <span className="text-red-500">*</span>
                   </label>
                   <select
-  id="city"
-  name="address.city"
-  value={formData.address.city}
-  onChange={handleChange}
-  onBlur={handleBlur}
-  disabled={!formData.address.state}
-  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition ${
-    shouldShowError("address.city") ? "border-red-500" : "border-gray-300"
-  }`}
->
-  <option value="">Select District / City</option>
-  {citiesList.map((city, index) => (
-    <option key={index} value={city}>{city}</option>
-  ))}
-</select>
+                    id="city"
+                    name="address.city"
+                    value={formData.address.city}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    disabled={!formData.address.state}
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition ${
+                      shouldShowError("address.city") ? "border-red-500" : "border-gray-300"
+                    }`}
+                  >
+                    <option value="">Select District / City</option>
+                    {formData.address.state && locations[formData.address.state].map((city, index) => (
+                      <option key={index} value={city}>{city}</option>
+                    ))}
+                  </select>
                   {shouldShowError("address.city") && (
                     <p className="text-red-500 text-sm mt-1 flex items-center">
                       <span className="mr-1">⚠</span> {errors["address.city"]}

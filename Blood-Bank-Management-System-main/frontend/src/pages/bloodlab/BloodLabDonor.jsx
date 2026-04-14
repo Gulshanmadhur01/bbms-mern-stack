@@ -1,3 +1,4 @@
+import API_BASE_URL from "../../utils/apiConfig.js";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-hot-toast";
@@ -44,7 +45,7 @@ const BloodLabDonor = () => {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.get(
-        `http://localhost:5000/api/blood-lab/donors/search?term=${term}`,
+        `${API_BASE_URL}/blood-lab/donors/search?term=${term}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -65,7 +66,7 @@ const BloodLabDonor = () => {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.get(
-        "http://localhost:5000/api/blood-lab/donations/recent",
+        `${API_BASE_URL}/blood-lab/donations/recent`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setRecentDonations(res.data.donations || []);
@@ -97,7 +98,7 @@ const BloodLabDonor = () => {
     try {
       const token = localStorage.getItem("token");
       await axios.post(
-        `http://localhost:5000/api/blood-lab/donors/donate/${selectedDonor._id}`,
+        `${API_BASE_URL}/blood-lab/donors/donate/${selectedDonor._id}`,
         donationData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -118,7 +119,7 @@ const BloodLabDonor = () => {
     try {
       const token = localStorage.getItem("token");
       await axios.post(
-        `http://localhost:5000/api/blood-lab/donors/donate/${donorId}`,
+        `${API_BASE_URL}/blood-lab/donors/donate/${donorId}`,
         { quantity: 1, remarks: "Quick donation" },
         { headers: { Authorization: `Bearer ${token}` } }
       );

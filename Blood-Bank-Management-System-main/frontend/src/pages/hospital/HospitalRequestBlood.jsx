@@ -1,3 +1,4 @@
+import API_BASE_URL from "../../utils/apiConfig.js";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "react-hot-toast";
@@ -20,7 +21,7 @@ const HospitalRequestBlood = () => {
       try {
         setLabsLoading(true);
         const token = localStorage.getItem("token");
-        const res = await axios.get("http://localhost:5000/api/facility/labs", {
+        const res = await axios.get(`${API_BASE_URL}/facility/labs`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setLabs(res.data.labs || []);
@@ -43,7 +44,7 @@ const HospitalRequestBlood = () => {
       const token = localStorage.getItem("token");
 
       const response = await axios.post(
-        "http://localhost:5000/api/hospital/blood/request",
+        `${API_BASE_URL}/hospital/blood/request`,
         form,
         { headers: { Authorization: `Bearer ${token}` } }
       );

@@ -19,13 +19,11 @@ import {
   Building,
 } from "lucide-react";
 
-// NOTE: Using localStorage and hardcoded URL for API connection as per previous context.
-const API_BASE_URL = "http://localhost:5000/api";
+import API_BASE_URL from "../../utils/apiConfig";
 
 // Define a default structured object for operating hours
 const defaultOperatingHours = {
-  weekdays: "",
-  weekends: "",
+  workingDays: [],
   notes: "",
 };
 
@@ -54,12 +52,11 @@ const LabProfile = () => {
   const initializeOperatingHours = (hoursData) => {
     if (hoursData && typeof hoursData === 'object' && !Array.isArray(hoursData)) {
       return {
-        weekdays: hoursData.weekdays || "",
-        weekends: hoursData.weekends || "",
+        workingDays: Array.isArray(hoursData.workingDays) ? hoursData.workingDays : [],
         notes: hoursData.notes || "",
       };
     }
-    // If it was previously a string (like the old state suggested) or null, initialize to defaults
+    // If it was previously a string or null, initialize to defaults
     return defaultOperatingHours;
   };
 
@@ -160,6 +157,38 @@ const LabProfile = () => {
   useEffect(() => {
     fetchProfile();
   }, [fetchProfile]);
+
+  const toggleWorkingDay = (day) => {
+    if (!isEditing) return;
+    setFormData((prev) => {
+      const currentDays = prev.operatingHours.workingDays || [];
+      const newDays = currentDays.includes(day)
+        ? currentDays.filter((d) => d !== day)
+        : [...currentDays, day];
+      
+      const updatedData = {
+        ...prev,
+        operatingHours: {
+          ...prev.operatingHours,
+          workingDays: newDays,
+        },
+      };
+
+      // Basic validation: clear error if at least one day is selected
+      if (newDays.length > 0) {
+        const newErrors = { ...errors };
+        delete newErrors["operatingHours.workingDays"];
+        setErrors(newErrors);
+      } else {
+        setErrors(prevErrors => ({
+          ...prevErrors,
+          "operatingHours.workingDays": "Please select at least one working day"
+        }));
+      }
+
+      return updatedData;
+    });
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -610,44 +639,34 @@ const LabProfile = () => {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   
-                  {/* Weekdays */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Weekdays (e.g., Mon - Fri)
+                  {/* Working Days (Interactive Chips) */}
+                  <div className="md:col-span-2">
+                    <label className={`block text-sm font-medium mb-3 ${errors["operatingHours.workingDays"] ? "text-red-500" : "text-gray-700"}`}>
+                      Working Days {isEditing && "*"}
                     </label>
-                    <input
-                      type="text"
-                      name="operatingHours.weekdays"
-                      value={formData.operatingHours.weekdays}
-                      onChange={handleChange}
-                      disabled={!isEditing}
-                      className={`w-full px-4 py-3 rounded-xl border ${
-                        isEditing
-                          ? "border-gray-300 bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                          : "bg-gray-50 border-gray-200"
-                      }`}
-                      placeholder="e.g., 9:00 AM to 5:00 PM"
-                    />
-                  </div>
-
-                  {/* Weekends */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Weekends (e.g., Sat - Sun)
-                    </label>
-                    <input
-                      type="text"
-                      name="operatingHours.weekends"
-                      value={formData.operatingHours.weekends}
-                      onChange={handleChange}
-                      disabled={!isEditing}
-                      className={`w-full px-4 py-3 rounded-xl border ${
-                        isEditing
-                          ? "border-gray-300 bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                          : "bg-gray-50 border-gray-200"
-                      }`}
-                      placeholder="e.g., 9:00 AM to 1:00 PM or Closed"
-                    />
+                    <div className="flex flex-wrap gap-2">
+                      {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => {
+                        const isSelected = formData.operatingHours.workingDays?.includes(day);
+                        return (
+                          <button
+                            key={day}
+                            type="button"
+                            onClick={() => toggleWorkingDay(day)}
+                            disabled={!isEditing}
+                            className={`px-4 py-2 rounded-xl border transition-all duration-200 font-medium ${
+                              isSelected
+                                ? "bg-red-600 text-white border-red-600 shadow-md transform scale-105"
+                                : "bg-white text-gray-700 border-gray-300 hover:border-red-400"
+                            } ${!isEditing ? "cursor-not-allowed opacity-80" : "cursor-pointer"}`}
+                          >
+                            {day}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {errors["operatingHours.workingDays"] && (
+                      <p className="text-red-500 text-xs mt-2">{errors["operatingHours.workingDays"]}</p>
+                    )}
                   </div>
 
                   {/* Notes */}

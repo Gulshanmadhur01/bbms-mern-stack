@@ -6,6 +6,8 @@ import {
   rejectFacility,
   getDashboardStats,
   getAllDonors,
+  triggerEmergencyBlast,
+  triggerAIEngine,
 } from "../controllers/adminController.js";
 
 const router = express.Router();
@@ -15,6 +17,7 @@ router.put("/facility/approve/:id",protect,  approveFacility);
 router.put("/facility/reject/:id", protect, rejectFacility);
 router.get("/dashboard", protect, getDashboardStats);
 router.get("/donors", getAllDonors);
-
+router.post("/trigger-shortage-alert", protect, triggerEmergencyBlast);
+router.post("/trigger-ai", protect, triggerAIEngine);
 
 export default router;

@@ -1,3 +1,4 @@
+import API_BASE_URL from "../../utils/apiConfig.js";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import {
@@ -22,7 +23,7 @@ import {
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 
-const API_URL = "http://localhost:5000/api/blood-lab";
+const API_URL = `${API_BASE_URL}/blood-lab`;
 
 const BloodLabDashboard = () => {
   const [dashboard, setDashboard] = useState(null);

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { Droplets } from "lucide-react";
 import EmergencyBanner from "./EmergencyBanner";
 
 export default function Header({ currentUser }) {
@@ -57,15 +58,17 @@ export default function Header({ currentUser }) {
         <div className="w-full px-4">
           <div className="flex items-center justify-between h-20">
 
-            {/* Logo + Title */}
-            <Link to="/" className="flex items-center gap-3">
-              <div className="w-11 h-11 flex items-center justify-center rounded-xl bg-gradient-to-br from-red-600 to-red-700 text-white font-bold shadow-md">
-                🩸
+            <Link to="/" className="flex items-center gap-3 group transition-transform hover:scale-105">
+              <div className="w-11 h-11 flex items-center justify-center rounded-xl bg-gradient-to-br from-red-600 to-red-700 text-white font-bold shadow-lg group-hover:shadow-red-500/30 transition-all relative">
+                <Droplets className="w-6 h-6" />
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 border-2 border-white rounded-full animate-pulse shadow-sm"></div>
               </div>
 
-              <h1 className="text-lg md:text-2xl font-extrabold tracking-wide uppercase bg-gradient-to-r from-red-600 to-red-800 bg-clip-text text-transparent">
-                BLOOD BANK MANAGEMENT SYSTEM
-              </h1>
+              <div>
+                <h1 className="text-lg md:text-xl font-black tracking-tight uppercase text-red-600 group-hover:text-red-700 transition-colors">
+                  Blood Bank Management System
+                </h1>
+              </div>
             </Link>
 
             {/* Desktop Navigation */}

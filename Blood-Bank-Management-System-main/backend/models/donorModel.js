@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
+import geocodeAddress from "../utils/geocoder.js";
 
 const donorSchema = new mongoose.Schema(
   {
@@ -9,6 +10,11 @@ const donorSchema = new mongoose.Schema(
       required: [true, "Full name is required"],
       trim: true,
       maxlength: [200, "Name cannot exceed 200 characters"],
+    },
+    fatherName: {
+      type: String,
+      trim: true,
+      maxlength: [200, "Father's name cannot exceed 200 characters"],
     },
     email: {
       type: String,
@@ -45,6 +51,17 @@ const donorSchema = new mongoose.Schema(
         required: [true, "Pincode is required"],
         match: [/^[1-9][0-9]{5}$/, "Please enter a valid 6-digit pincode"],
       },
+    },
+    location: {
+      type: {
+        type: String,
+        enum: ['Point'],
+        default: 'Point'
+      },
+      coordinates: {
+        type: [Number],
+        index: '2dsphere'
+      }
     },
 
     // 🩸 Medical / Blood Info
@@ -111,6 +128,20 @@ donorSchema.pre("save", async function (next) {
   // Use a consistent salt round value (e.g., 12)
   const salt = await bcrypt.genSalt(12);
   this.password = await bcrypt.hash(this.password, salt);
+  next();
+});
+
+// 📍 Geocode address before save
+donorSchema.pre("save", async function (next) {
+  if (!this.isModified("address")) return next();
+  
+  const { street, city, state, pincode } = this.address;
+  if (street && city && state && pincode) {
+    const loc = await geocodeAddress(street, city, state, pincode);
+    if (loc) {
+      this.location = loc;
+    }
+  }
   next();
 });
 

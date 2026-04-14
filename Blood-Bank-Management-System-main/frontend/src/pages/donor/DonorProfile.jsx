@@ -25,7 +25,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 
-const API_BASE_URL = "http://localhost:5000/api";
+import API_BASE_URL from "../../utils/apiConfig";
 
 const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"];
 const GENDER_OPTIONS = [

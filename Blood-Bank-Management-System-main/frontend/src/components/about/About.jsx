@@ -74,7 +74,7 @@ const AboutUs = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 to-white">
+    <div className="min-h-screen bg-gradient-to-br from-red-50 to-white" id="about">
       <Header />
       {/* Hero Section */}
       <section className="relative py-20 mt-20 bg-gradient-to-r from-red-600 to-red-700 text-white">
@@ -88,10 +88,19 @@ const AboutUs = () => {
             making blood donation accessible, safe, and impactful.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="bg-white text-red-600 px-8 py-3 rounded-lg font-semibold hover:bg-red-50 transition-colors">
+            <button 
+              onClick={() => window.location.href = '/register/donor'}
+              className="bg-white text-red-600 px-8 py-3 rounded-lg font-semibold hover:bg-red-50 transition-colors"
+            >
               Join Our Mission
             </button>
-            <button className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white/10 transition-colors">
+            <button 
+              onClick={() => {
+                const section = document.getElementById('mission');
+                section?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white/10 transition-colors"
+            >
               Learn More
             </button>
           </div>
@@ -247,8 +256,8 @@ const AboutUs = () => {
             <div className="text-center">
               <Mail className="w-8 h-8 text-red-600 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Email Us</h3>
-              <p className="text-gray-600">help@bloodconnect.org</p>
-              <p className="text-gray-600">support@bloodconnect.org</p>
+              <p className="text-gray-600">help@bbms-system.org</p>
+              <p className="text-gray-600">support@bbms-system.org</p>
             </div>
             <div className="text-center">
               <Globe className="w-8 h-8 text-red-600 mx-auto mb-4" />

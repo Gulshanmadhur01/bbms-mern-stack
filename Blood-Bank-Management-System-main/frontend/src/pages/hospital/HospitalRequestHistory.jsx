@@ -1,3 +1,4 @@
+import API_BASE_URL from "../../utils/apiConfig.js";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "react-hot-toast";
@@ -12,7 +13,7 @@ const HospitalRequestHistory = () => {
       try {
         setLoading(true);
         const token = localStorage.getItem("token");
-        const res = await axios.get("http://localhost:5000/api/hospital/blood/requests", {
+        const res = await axios.get(`${API_BASE_URL}/hospital/blood/requests`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 

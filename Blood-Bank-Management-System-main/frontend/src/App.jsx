@@ -27,17 +27,41 @@ import DonorDirectory from "./pages/hospital/DonorDirectory";
 import About from "./components/about/About";
 import Contact from "./components/contact/Contact";
 import DonorDonationHistory from "./pages/donor/DonorDonationHistory";
+import Information from "./pages/Information";
+import BloodAvailability from "./pages/BloodAvailability";
+import BloodCenterDirectory from "./pages/BloodCenterDirectory";
+import CampSchedule from "./pages/CampSchedule";
+import CampRegistration from "./pages/CampRegistration";
+import ScrollToTop from "./components/ScrollToTop";
 
 function App() {
   return (
+    <>
+      <ScrollToTop />
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<LandingPage />} />
+        <Route path="/availability" element={<BloodAvailability />} />
+        <Route path="/directory" element={<BloodCenterDirectory />} />
+        <Route path="/camp-schedule" element={<CampSchedule />} />
+        <Route path="/register-camp" element={<CampRegistration />} />
         <Route path="/register/donor" element={<DonorRegister />} />
         <Route path="/register/facility" element={<FacilityForm />} />
         <Route path="/login" element={<Login />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
+        
+        {/* Info & Placeholder Routes */}
+        <Route path="/mission" element={<Information />} />
+        <Route path="/eligibility" element={<Information />} />
+        <Route path="/process" element={<Information />} />
+        <Route path="/benefits" element={<Information />} />
+        <Route path="/stories" element={<Information />} />
+        <Route path="/news" element={<Information />} />
+        <Route path="/emergency" element={<Information />} />
+        <Route path="/privacy" element={<Information />} />
+        <Route path="/terms" element={<Information />} />
+        <Route path="/cookies" element={<Information />} />
 
         <Route path="/donor" element={<ProtectedRoute><DashboardLayout userRole="donor" /></ProtectedRoute>}>
           <Route index element={<DonorDashboard />} />
@@ -71,6 +95,7 @@ function App() {
         </Route>
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
+    </>
   );
 }
 

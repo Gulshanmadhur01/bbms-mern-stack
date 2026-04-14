@@ -1,3 +1,4 @@
+import API_BASE_URL from "../../utils/apiConfig.js";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import {
@@ -24,7 +25,7 @@ import {
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 
-const API_URL = "http://localhost:5000/api/donor";
+const API_URL = `${API_BASE_URL}/donor`;
 
 const DonorDashboard = () => {
   const [dashboard, setDashboard] = useState(null);
@@ -152,9 +153,72 @@ const DonorDashboard = () => {
   const nextDonationDate = donor?.nextEligibleDate ? new Date(donor.nextEligibleDate) : null;
   const daysUntilEligible = nextDonationDate ? Math.ceil((nextDonationDate - new Date()) / (1000 * 60 * 60 * 24)) : 0;
 
+  const handleDownloadCertificate = () => {
+    // Basic certificate implementation using a new window for printing
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Donation Certificate - Blood Bank Management System</title>
+          <style>
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; text-align: center; color: #333; }
+            .cert-container { border: 10px double #8b0000; padding: 50px; background: #fffaf0; border-radius: 20px; }
+            .logo { font-size: 40px; margin-bottom: 20px; }
+            h1 { color: #8b0000; font-size: 48px; border-bottom: 2px solid #8b0000; display: inline-block; padding-bottom: 10px; }
+            .name { font-size: 32px; font-weight: bold; margin: 30px 0; font-style: italic; }
+            .content { font-size: 20px; line-height: 1.6; }
+            .footer { margin-top: 50px; display: flex; justify-content: space-between; font-size: 16px; }
+            .seal { font-size: 60px; opacity: 0.5; }
+          </style>
+        </head>
+        <body>
+          <div class="cert-container">
+            <div class="logo">🩸</div>
+            <h1>Certificate of Appreciation</h1>
+            <p class="content">This is to certify that</p>
+            <div class="name">${donor?.name || 'Valued Donor'}</div>
+            <p class="content">
+              has generously donated blood at our facility on <b>${new Date().toLocaleDateString()}</b>.<br>
+              Your selfless contribution helps save lives and strengthens our community.
+            </p>
+            <div class="seal">OFFICIAL SEAL</div>
+            <div class="footer">
+              <div>
+                <p>_______________________</p>
+                <p>Authority Signature</p>
+              </div>
+              <div>
+                <p>Date: ${new Date().toLocaleDateString()}</p>
+                <p>Certificate ID: BBMS-${Math.random().toString(36).substr(2, 9).toUpperCase()}</p>
+              </div>
+            </div>
+          </div>
+          <script>
+            window.onload = function() { window.print(); window.close(); };
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
+
+  const handleShareAchievement = () => {
+    const shareText = `I just donated blood through the Blood Bank Management System! Join me in saving lives. 🩸 #BloodDonor #BBMS`;
+    if (navigator.share) {
+      navigator.share({
+        title: 'My Blood Donation Impact',
+        text: shareText,
+        url: window.location.origin,
+      }).catch(console.error);
+    } else {
+      navigator.clipboard.writeText(`${shareText} ${window.location.origin}`);
+      toast.success("Impact message copied to clipboard!");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-50 to-white p-6">
-      {/* Header */}
+      {/* ... previous content ... */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
@@ -294,7 +358,7 @@ const DonorDashboard = () => {
               icon={<Droplet className="w-8 h-8" />}
               message="No donation history yet"
               actionText="Make your first donation"
-              onAction={() => toast.success("Find nearby blood camps to get started!")}
+              onAction={() => window.location.href = '/donor/camps'}
             />
           )}
         </Section>
@@ -332,28 +396,28 @@ const DonorDashboard = () => {
             icon={<Download className="w-5 h-5" />}
             title="Download Certificate"
             description="Get your donation certificate"
-            onClick={() => toast.success("Certificate download started!")}
+            onClick={handleDownloadCertificate}
             color="blue"
           />
           <ActionCard
             icon={<Share2 className="w-5 h-5" />}
             title="Share Achievement"
             description="Share your impact with others"
-            onClick={() => toast.success("Share your life-saving journey!")}
+            onClick={handleShareAchievement}
             color="green"
           />
           <ActionCard
             icon={<Calendar className="w-5 h-5" />}
             title="Schedule Donation"
             description="Book your next donation"
-            onClick={() => toast.success("Find nearby blood donation camps!")}
+            onClick={() => window.location.href = '/donor/camps'}
             color="red"
           />
           <ActionCard
             icon={<Users className="w-5 h-5" />}
             title="Invite Friends"
             description="Grow the donor community"
-            onClick={() => toast.success("Invite friends to become donors!")}
+            onClick={handleShareAchievement}
             color="purple"
           />
         </div>

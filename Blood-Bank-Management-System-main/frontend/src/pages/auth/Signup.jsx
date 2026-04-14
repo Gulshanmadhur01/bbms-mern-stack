@@ -1,3 +1,4 @@
+import API_BASE_URL from "../../utils/apiConfig.js";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -18,7 +19,7 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/register", formData);
+      const res = await axios.post(`${API_BASE_URL}/auth/register`, formData);
       alert("✅ Registered Successfully!");
       navigate("/login"); // redirect after success
     } catch (err) {

@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
+import geocodeAddress from "../utils/geocoder.js";
 
 const facilitySchema = new mongoose.Schema(
   {
@@ -44,6 +45,17 @@ const facilitySchema = new mongoose.Schema(
         type: String,
         required: [true, "Pincode is required"],
         match: [/^[1-9][0-9]{5}$/, "Please enter a valid 6-digit pincode"]
+      }
+    },
+    location: {
+      type: {
+        type: String,
+        enum: ['Point'],
+        default: 'Point'
+      },
+      coordinates: {
+        type: [Number],
+        index: '2dsphere'
       }
     },
 
@@ -94,7 +106,7 @@ const facilitySchema = new mongoose.Schema(
       workingDays: {
         type: [String],
         enum: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-        default: ["Mon", "Tue", "Wed", "Thu", "Fri"]
+        default: []
       }
     },
     is24x7: { type: Boolean, default: false },
@@ -138,6 +150,20 @@ const facilitySchema = new mongoose.Schema(
 facilitySchema.pre("save", function (next) {
   if (this.facilityType) {
     this.role = this.facilityType;
+  }
+  next();
+});
+
+// 📍 Geocode address before save
+facilitySchema.pre("save", async function (next) {
+  if (!this.isModified("address")) return next();
+  
+  const { street, city, state, pincode } = this.address;
+  if (street && city && state && pincode) {
+    const loc = await geocodeAddress(street, city, state, pincode);
+    if (loc) {
+      this.location = loc;
+    }
   }
   next();
 });

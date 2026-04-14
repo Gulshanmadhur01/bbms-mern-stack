@@ -1,3 +1,4 @@
+import API_BASE_URL from "../../utils/apiConfig";
 import { useEffect, useState } from "react";
 import {
   Building2,
@@ -41,7 +42,7 @@ const HospitalDashboard = () => {
         }
 
         // Fetch hospital profile
-        const profileRes = await fetch("http://localhost:5000/api/facility/profile", {
+        const profileRes = await fetch(`${API_BASE_URL}/facility/profile`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -61,12 +62,12 @@ const HospitalDashboard = () => {
         }
 
         // Fetch blood stock
-        const stockRes = await axios.get("http://localhost:5000/api/hospital/blood/stock", {
+        const stockRes = await axios.get(`${API_BASE_URL}/hospital/blood/stock`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
         // Fetch blood requests
-        const requestsRes = await axios.get("http://localhost:5000/api/hospital/blood/requests", {
+        const requestsRes = await axios.get(`${API_BASE_URL}/hospital/blood/requests`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -334,7 +335,7 @@ const HospitalDashboard = () => {
                 <Droplet className="w-12 h-12 text-gray-400 mx-auto mb-3" />
                 <p className="text-gray-600 mb-4">No blood inventory available</p>
                 <button
-                  onClick={() => window.location.href = '/hospital/request-blood'}
+                  onClick={() => window.location.href = '/hospital/blood-request-create'}
                   className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg"
                 >
                   Request Blood

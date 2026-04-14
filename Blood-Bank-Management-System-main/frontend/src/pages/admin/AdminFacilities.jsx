@@ -1,3 +1,4 @@
+import API_BASE_URL from "../../utils/apiConfig.js";
 import { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
 import {
@@ -26,7 +27,7 @@ const FacilityApproval = () => {
   const [refreshing, setRefreshing] = useState(false);
 
   const token = localStorage.getItem("token");
-  const API_URL = "http://localhost:5000/api/admin";
+  const API_URL = `${API_BASE_URL}/admin`;
 
   // Fetch pending facilities
   const fetchPendingFacilities = async (showToast = false) => {

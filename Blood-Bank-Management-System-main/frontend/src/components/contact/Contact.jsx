@@ -1,3 +1,4 @@
+import API_BASE_URL from "../../utils/apiConfig.js";
 import React from "react";
 import {
   Phone,
@@ -15,6 +16,44 @@ import Header from "../Header";
 import Footer from "../Footer";
 
 const Contact = () => {
+  const [formData, setFormData] = React.useState({
+    name: "",
+    email: "",
+    phone: "",
+    message: ""
+  });
+  const [loading, setLoading] = React.useState(false);
+  const [success, setSuccess] = React.useState(false);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/contact/send`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+      const data = await response.json();
+      if (data.success) {
+        setSuccess(true);
+        setFormData({ name: "", email: "", phone: "", message: "" });
+        setTimeout(() => setSuccess(false), 5000);
+      } else {
+        alert(data.message || "Failed to send message.");
+      }
+    } catch (error) {
+      console.error("Contact form error:", error);
+      alert("Server error. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-50 to-white">
       <Header />
@@ -41,8 +80,8 @@ const Contact = () => {
           <div className="text-center shadow-md p-8 rounded-xl hover:shadow-xl transition">
             <Mail className="w-10 h-10 text-red-600 mx-auto mb-4" />
             <h3 className="text-xl font-semibold mb-2">Email Us</h3>
-            <p className="text-gray-600">support@bloodconnect.org</p>
-            <p className="text-gray-600">info@bloodconnect.org</p>
+            <p className="text-gray-600">support@bbms-system.org</p>
+            <p className="text-gray-600">info@bbms-system.org</p>
           </div>
 
           {/* Office */}
@@ -68,11 +107,11 @@ const Contact = () => {
             <div className="space-y-4">
               <div className="flex items-center">
                 <Phone className="text-red-600 mr-3" />
-                <span className="text-gray-700">+91 1234567890cd</span>
+                <span className="text-gray-700">+91 12345 67890</span>
               </div>
               <div className="flex items-center">
                 <Mail className="text-red-600 mr-3" />
-                <span className="text-gray-700">support@bloodconnect.org</span>
+                <span className="text-gray-700">support@bbms-system.org</span>
               </div>
               <div className="flex items-center">
                 <MapPin className="text-red-600 mr-3" />
@@ -90,70 +129,101 @@ const Contact = () => {
           </div>
 
           {/* FORM */}
-          <form className="bg-white p-8 rounded-2xl shadow-lg space-y-6">
-            {/* Name */}
-            <div>
-              <label className="font-medium text-gray-700">Full Name</label>
-              <div className="flex items-center border rounded-lg px-3 mt-2">
-                <User className="text-gray-500 mr-2" />
-                <input  
-                  type="text"
-                  placeholder="Enter your name"
-                  className="w-full p-3 outline-none"
-                />
+          <form onSubmit={handleSubmit} className="bg-white p-8 rounded-2xl shadow-lg space-y-6">
+            {success ? (
+              <div className="bg-green-50 border border-green-200 p-6 rounded-xl text-center text-green-700">
+                <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
+                <h3 className="text-xl font-bold mb-2">Message Sent!</h3>
+                <p>Thank you for reaching out. We have received your message and will get back to you shortly.</p>
               </div>
-            </div>
+            ) : (
+              <>
+                {/* Name */}
+                <div>
+                  <label className="font-medium text-gray-700">Full Name</label>
+                  <div className="flex items-center border rounded-lg px-3 mt-2">
+                    <User className="text-gray-500 mr-2" />
+                    <input  
+                      type="text"
+                      name="name"
+                      required
+                      value={formData.name}
+                      onChange={handleChange}
+                      placeholder="Enter your name"
+                      className="w-full p-3 outline-none"
+                    />
+                  </div>
+                </div>
 
-            {/* Email */}
-            <div>
-              <label className="font-medium text-gray-700">Email Address</label>
-              <div className="flex items-center border rounded-lg px-3 mt-2">
-                <Mail className="text-gray-500 mr-2" />
-                <input  
-                  type="email"
-                  placeholder="Enter your email"
-                  className="w-full p-3 outline-none"
-                />
-              </div>
-            </div>
+                {/* Email */}
+                <div>
+                  <label className="font-medium text-gray-700">Email Address</label>
+                  <div className="flex items-center border rounded-lg px-3 mt-2">
+                    <Mail className="text-gray-500 mr-2" />
+                    <input  
+                      type="email"
+                      name="email"
+                      required
+                      value={formData.email}
+                      onChange={handleChange}
+                      placeholder="Enter your email"
+                      className="w-full p-3 outline-none"
+                    />
+                  </div>
+                </div>
 
-            {/* Phone */}
-            <div>
-              <label className="font-medium text-gray-700">Phone Number</label>
-              <div className="flex items-center border rounded-lg px-3 mt-2">
-                <Phone className="text-gray-500 mr-2" />
-                <input  
-                  type="text"
-                  placeholder="Enter phone number"
-                  className="w-full p-3 outline-none"
-                />
-              </div>
-            </div>
+                {/* Phone */}
+                <div>
+                  <label className="font-medium text-gray-700">Phone Number</label>
+                  <div className="flex items-center border rounded-lg px-3 mt-2">
+                    <Phone className="text-gray-500 mr-2" />
+                    <input  
+                      type="text"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      placeholder="Enter phone number"
+                      className="w-full p-3 outline-none"
+                    />
+                  </div>
+                </div>
 
-            {/* Message */}
-            <div>
-              <label className="font-medium text-gray-700">Message</label>
-              <div className="flex items-start border rounded-lg px-3 mt-2">
-                <MessageSquare className="text-gray-500 mr-2 mt-3" />
-                <textarea
-                  rows={4}
-                  placeholder="Write your message here..."
-                  className="w-full p-3 outline-none"
-                ></textarea>
-              </div>
-            </div>
+                {/* Message */}
+                <div>
+                  <label className="font-medium text-gray-700">Message</label>
+                  <div className="flex items-start border rounded-lg px-3 mt-2">
+                    <MessageSquare className="text-gray-500 mr-2 mt-3" />
+                    <textarea
+                      rows={4}
+                      name="message"
+                      required
+                      value={formData.message}
+                      onChange={handleChange}
+                      placeholder="Write your message here..."
+                      className="w-full p-3 outline-none"
+                    ></textarea>
+                  </div>
+                </div>
 
-            {/* Submit */}
-            <button
-              type="submit"
-              className="w-full bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 flex items-center justify-center gap-2"
-            >
-              <Send className="w-5 h-5" />
-              Send Message
-            </button>
+                {/* Submit */}
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className={`w-full ${loading ? 'bg-red-400' : 'bg-red-600 hover:bg-red-700'} text-white py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors`}
+                >
+                  {loading ? (
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    <Send className="w-5 h-5" />
+                  )}
+                  {loading ? "Sending..." : "Send Message"}
+                </button>
+              </>
+            )}
           </form>
         </div>
       </section>
+
 
       {/* MAP SECTION */}
       <section className="mb-5">

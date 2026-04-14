@@ -13,6 +13,11 @@ const bloodSchema = new mongoose.Schema({
     min: 0,
     default: 0 
   },
+  componentType: {
+    type: String,
+    enum: ["Whole Blood", "Packed Red Blood Cells", "Plasma", "Platelets"],
+    default: "Whole Blood"
+  },
   expiryDate: { 
     type: Date, 
     required: true 

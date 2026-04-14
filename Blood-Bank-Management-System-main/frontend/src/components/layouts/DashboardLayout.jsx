@@ -26,6 +26,8 @@ import {
   Loader2,
 } from "lucide-react";
 
+import API_BASE_URL from "../../utils/apiConfig";
+
 const DashboardLayout = ({ userRole = "donor" }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -143,10 +145,10 @@ const DashboardLayout = ({ userRole = "donor" }) => {
       // Simple implementation of retries for robustness
       const maxRetries = 3;
       let attempt = 0;
-      
+
       while (attempt < maxRetries) {
         try {
-          const res = await fetch("http://localhost:5000/api/auth/profile", {
+          const res = await fetch(`${API_BASE_URL}/auth/profile`, {
             headers: { Authorization: `Bearer ${token}` },
           });
 
@@ -155,7 +157,7 @@ const DashboardLayout = ({ userRole = "donor" }) => {
             const user = data.user;
 
             if (!user) {
-                throw new Error("User data structure invalid.");
+              throw new Error("User data structure invalid.");
             }
 
             if (user.role.toLowerCase() !== userRole.toLowerCase()) {
@@ -184,7 +186,7 @@ const DashboardLayout = ({ userRole = "donor" }) => {
         // Prepare for retry with exponential backoff (e.g., 1s, 2s, 4s)
         attempt++;
         if (attempt < maxRetries) {
-            await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+          await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
         }
       }
 
@@ -222,7 +224,7 @@ const DashboardLayout = ({ userRole = "donor" }) => {
     navigate("/login");
   };
 
-  
+
 
 
   const getBadgeColor = (badge) => {
@@ -247,9 +249,8 @@ const DashboardLayout = ({ userRole = "donor" }) => {
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-red-50 to-white">
       {/* HEADER */}
       <header
-        className={`flex justify-between items-center bg-white/95 backdrop-blur-md shadow-sm border-b border-red-100 px-4 sm:px-6 py-3 sticky top-0 z-50 transition-all duration-300 ${
-          isScrolled ? 'shadow-lg' : 'shadow-sm'
-        }`}
+        className={`flex justify-between items-center bg-white/95 backdrop-blur-md shadow-sm border-b border-red-100 px-4 sm:px-6 py-3 sticky top-0 z-50 transition-all duration-300 ${isScrolled ? 'shadow-lg' : 'shadow-sm'
+          }`}
         style={{
           background: `linear-gradient(135deg, ${theme.primary[50]} 0%, white 50%, ${theme.primary[50]} 100%)`,
         }}
@@ -263,7 +264,7 @@ const DashboardLayout = ({ userRole = "donor" }) => {
           >
             {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
-          
+
           {/* Logo and Title */}
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-red-100 shadow-sm">
@@ -287,7 +288,7 @@ const DashboardLayout = ({ userRole = "donor" }) => {
 
         {/* Right Section */}
         <div className="flex items-center gap-2 sm:gap-4">
-         
+
           {/* User Profile */}
           <div className="flex items-center gap-2 sm:gap-3">
             <div
@@ -324,11 +325,9 @@ const DashboardLayout = ({ userRole = "donor" }) => {
       <div className="flex flex-1 relative">
         {/* SIDEBAR (omitted for brevity) */}
         <aside
-          className={`${
-            sidebarOpen ? "translate-x-0" : "-translate-x-full"
-          } lg:translate-x-0 fixed lg:static inset-y-0 left-0 z-40 ${
-            sidebarCollapsed ? "w-16" : "w-64"
-          } bg-white shadow-xl border-r border-red-100 transition-all duration-300 flex flex-col transform lg:transform-none`}
+          className={`${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+            } lg:translate-x-0 fixed lg:static inset-y-0 left-0 z-40 ${sidebarCollapsed ? "w-16" : "w-64"
+            } bg-white shadow-xl border-r border-red-100 transition-all duration-300 flex flex-col transform lg:transform-none`}
           style={{
             background: `linear-gradient(to bottom, ${theme.primary[50]}, white)`,
           }}
@@ -372,13 +371,11 @@ const DashboardLayout = ({ userRole = "donor" }) => {
                       navigate(item.path);
                       setSidebarOpen(false);
                     }}
-                    className={`flex items-center gap-3 w-full p-3 rounded-xl transition-all duration-200 relative group ${
-                      isActive
+                    className={`flex items-center gap-3 w-full p-3 rounded-xl transition-all duration-200 relative group ${isActive
                         ? "shadow-md font-semibold transform scale-[1.02]"
                         : "hover:shadow-md hover:transform hover:scale-[1.02] hover:bg-red-50"
-                    } ${
-                      isActive ? "text-white" : "text-gray-700 hover:text-red-700"
-                    }`}
+                      } ${isActive ? "text-white" : "text-gray-700 hover:text-red-700"
+                      }`}
                     style={{
                       background: isActive
                         ? `linear-gradient(135deg, ${theme.primary[500]}, ${theme.primary[600]})`
@@ -448,9 +445,8 @@ const DashboardLayout = ({ userRole = "donor" }) => {
 
         {/* MAIN CONTENT */}
         <main
-          className={`flex-1 transition-all duration-300 min-h-[calc(100vh-80px)] ${
-            sidebarCollapsed ? "lg:ml-0" : "lg:ml-0"
-          }`}
+          className={`flex-1 transition-all duration-300 min-h-[calc(100vh-80px)] ${sidebarCollapsed ? "lg:ml-0" : "lg:ml-0"
+            }`}
         >
           <div className="h-full overflow-auto p-4 sm:p-6">
             {/* PASSING DATA TO OUTLET HERE */}
@@ -477,9 +473,8 @@ const DashboardLayout = ({ userRole = "donor" }) => {
               <button
                 key={item.path}
                 onClick={() => navigate(item.path)}
-                className={`flex flex-col items-center p-2 rounded-lg transition-all duration-200 flex-1 mx-1 ${
-                  isActive ? 'bg-red-50 text-red-600' : 'text-gray-600'
-                }`}
+                className={`flex flex-col items-center p-2 rounded-lg transition-all duration-200 flex-1 mx-1 ${isActive ? 'bg-red-50 text-red-600' : 'text-gray-600'
+                  }`}
               >
                 <Icon size={20} />
                 <span className="text-xs mt-1">{item.label.split(' ')[0]}</span>

@@ -1,7 +1,9 @@
+import API_BASE_URL from "../../utils/apiConfig.js";
 "use client";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { indiaData } from "../../utils/indiaData";
 
 // Constants for better maintainability
 const FACILITY_TYPES = ["Hospital", "Blood Lab"];
@@ -13,12 +15,7 @@ const FACILITY_CATEGORIES = [
   "Other",
 ];
 
-const STATES = {
-  Maharashtra: ["Mumbai", "Pune", "Nagpur"],
-  Karnataka: ["Bengaluru", "Mysore", "Mangalore"],
-  Delhi: ["New Delhi", "Dwarka", "Rohini"],
-  "Tamil Nadu": ["Chennai", "Coimbatore", "Madurai"],
-};
+const STATES = indiaData;
 
 const WORKING_DAYS = [
   { value: "Mon", label: "Monday" },
@@ -65,11 +62,11 @@ const validators = {
     return "";
   },
   "documents.registrationProof.url": (value) => (!value.trim() ? "Document URL is required" : ""),
+  "operatingHours.workingDays": (value) => (!value || value.length === 0 ? "Please select at least one working day" : ""),
 };
 
 export default function FacilityRegisterForm() {
   const navigate = useNavigate();
-  const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -84,7 +81,7 @@ export default function FacilityRegisterForm() {
     operatingHours: {
       open: "09:00",
       close: "18:00",
-      workingDays: ["Mon", "Tue", "Wed", "Thu", "Fri"],
+      workingDays: [],
     },
     is24x7: false,
     emergencyServices: false,
@@ -120,13 +117,6 @@ export default function FacilityRegisterForm() {
         };
       } else if (name.startsWith("operatingHours.")) {
         const field = name.split(".")[1];
-        if (field === "workingDays") {
-          const options = Array.from(e.target.selectedOptions).map(o => o.value);
-          return {
-            ...prev,
-            operatingHours: { ...prev.operatingHours, workingDays: options },
-          };
-        }
         return {
           ...prev,
           operatingHours: { ...prev.operatingHours, [field]: value },
@@ -153,6 +143,24 @@ export default function FacilityRegisterForm() {
     }
   };
 
+  // Helper to toggle working days (using chips instead of multi-select)
+  const toggleWorkingDay = (dayValue) => {
+    setFormData(prev => {
+      const currentDays = prev.operatingHours.workingDays || [];
+      const newDays = currentDays.includes(dayValue)
+        ? currentDays.filter(d => d !== dayValue)
+        : [...currentDays, dayValue];
+      
+      return {
+        ...prev,
+        operatingHours: { ...prev.operatingHours, workingDays: newDays }
+      };
+    });
+    
+    // Mark as touched
+    setTouched(prev => ({ ...prev, "operatingHours.workingDays": true }));
+  };
+
   // Handle blur events for validation
   const handleBlur = (e) => {
     const { name } = e.target;
@@ -172,6 +180,8 @@ export default function FacilityRegisterForm() {
         value = formData.address[child];
       } else if (fieldName.startsWith("documents.")) {
         value = formData.documents.registrationProof.url;
+      } else if (fieldName.startsWith("operatingHours.")) {
+        value = formData.operatingHours.workingDays;
       }
     } else {
       value = formData[fieldName];
@@ -190,26 +200,18 @@ export default function FacilityRegisterForm() {
     });
   };
 
-  // Validate current step
-  const validateStep = () => {
+  // Validate entire form
+  const validateForm = () => {
     const newErrors = {};
     
-    const stepValidations = {
-      1: ["name", "email"],
-      2: ["password", "facilityType"],
-      3: [
-        "phone", 
-        "emergencyContact", 
-        "registrationNumber", 
-        "address.street", 
-        "address.city", 
-        "address.state", 
-        "address.pincode", 
-        "documents.registrationProof.url"
-      ],
-    };
+    const allFields = [
+      "name", "email", "password", "facilityType", 
+      "phone", "emergencyContact", "registrationNumber", 
+      "address.street", "address.city", "address.state", "address.pincode", 
+      "documents.registrationProof.url", "operatingHours.workingDays"
+    ];
 
-    stepValidations[step].forEach(field => {
+    allFields.forEach(field => {
       let value;
       
       if (field.includes(".")) {
@@ -218,6 +220,8 @@ export default function FacilityRegisterForm() {
           value = formData.address[child];
         } else if (field.startsWith("documents.")) {
           value = formData.documents.registrationProof.url;
+        } else if (field.startsWith("operatingHours.")) {
+          value = formData.operatingHours.workingDays;
         }
       } else {
         value = formData[field];
@@ -229,35 +233,29 @@ export default function FacilityRegisterForm() {
 
     setErrors(newErrors);
     
-    // Mark all step fields as touched to show errors
+    // Mark all fields as touched to show errors
     const newTouched = { ...touched };
-    stepValidations[step].forEach(field => {
+    allFields.forEach(field => {
       newTouched[field] = true;
     });
     setTouched(newTouched);
 
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleNext = () => {
-    if (validateStep()) {
-      setStep(step + 1);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else {
+    if (Object.keys(newErrors).length > 0) {
       // Scroll to first error
-      const firstErrorField = Object.keys(errors)[0];
-      const element = document.querySelector(`[name="${firstErrorField}"]`);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        element.focus();
-      }
+      setTimeout(() => {
+          const firstErrorField = Object.keys(newErrors)[0];
+          const element = document.querySelector(`[name="${firstErrorField}"]`);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            element.focus();
+          }
+      }, 100);
+      return false;
     }
+
+    return true;
   };
 
-  const handleBack = () => {
-    setStep(step - 1);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
 
   // Fixes were already here, but check again for clarity:
   const handleSubmit = async (e) => {
@@ -268,9 +266,8 @@ export default function FacilityRegisterForm() {
     }
     
     // Ensure validation runs before proceeding to API call
-    if (!validateStep()) {
-        console.log("Validation failed on step 3. Data not submitted.");
-        // Stop execution if validation fails
+    if (!validateForm()) {
+        toast.error("Please fill all required fields correctly.");
         return; 
     }
     
@@ -294,7 +291,7 @@ export default function FacilityRegisterForm() {
   };
     
     // **YOUR TARGET URL**
-    const API_URL = "http://localhost:5000/api/auth/register"; 
+    const API_URL = `${API_BASE_URL}/auth/register`; 
     
    console.log("Submitting Data to Backend:", submissionPayload); // Use the new payload
 
@@ -336,7 +333,6 @@ export default function FacilityRegisterForm() {
     return touched[fieldName] && errors[fieldName];
   };
 
-  const progressPercentage = (step / 3) * 100;
 
   return (
     <div className="min-h-screen mt-28 bg-red-50 flex items-center justify-center py-8 px-4">
@@ -346,33 +342,17 @@ export default function FacilityRegisterForm() {
           <h1 className="text-2xl font-bold text-center mb-2">
             Blood Facility Registration
           </h1>
-          <p className="text-center mb-4 opacity-90">
-            Register your facility in 3 simple steps
+          <p className="text-center opacity-90">
+            Register your facility to join the healthcare network.
           </p>
-          
-          {/* Progress Bar */}
-          <div className="mb-2 flex justify-between items-center text-sm">
-            <span>Step {step} of 3</span>
-            <span>{progressPercentage.toFixed(0)}% Complete</span>
-          </div>
-          <div className="w-full bg-red-300 rounded-full h-2.5">
-            <div
-              className="bg-white h-2.5 rounded-full transition-all duration-300"
-              style={{ width: `${progressPercentage}%` }}
-            ></div>
-          </div>
-          <div className="flex justify-between mt-2 text-sm">
-            <span className={step >= 1 ? "font-semibold" : "opacity-75"}>Basic Info</span>
-            <span className={step >= 2 ? "font-semibold" : "opacity-75"}>Account</span>
-            <span className={step >= 3 ? "font-semibold" : "opacity-75"}>Details</span>
-          </div>
         </div>
 
         {/* Form Section */}
-        <form onSubmit={handleSubmit} className="p-6 md:p-8 space-y-6">
-          {/* Step 1: Basic Information */}
-          {step === 1 && (
+        <form onSubmit={handleSubmit} className="p-6 md:p-8 space-y-8">
+
+          {/* Section 1: Basic Information */}
             <div className="space-y-6">
+              <h2 className="text-lg font-bold text-red-700 border-b pb-2">1. Basic Information</h2>
               <div>
                 <label htmlFor="name" className="block font-medium mb-2">
                   Facility Name <span className="text-red-500">*</span>
@@ -419,11 +399,10 @@ export default function FacilityRegisterForm() {
                 )}
               </div>
             </div>
-          )}
 
-          {/* Step 2: Account Information */}
-          {step === 2 && (
-            <div className="space-y-6">
+          {/* Section 2: Account Information */}
+            <div className="space-y-6 pt-4">
+              <h2 className="text-lg font-bold text-red-700 border-b pb-2">2. Account Credentials</h2>
               <div>
                 <label htmlFor="password" className="block font-medium mb-2">
                   Password <span className="text-red-500">*</span>
@@ -494,11 +473,10 @@ export default function FacilityRegisterForm() {
                 </div>
               </div>
             </div>
-          )}
 
-          {/* Step 3: Facility Details */}
-          {step === 3 && (
-            <div className="space-y-6">
+          {/* Section 3: Facility Details */}
+            <div className="space-y-6 pt-4">
+              <h2 className="text-lg font-bold text-red-700 border-b pb-2">3. Facility Details & Operations</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="phone" className="block font-medium mb-2">
@@ -722,26 +700,35 @@ export default function FacilityRegisterForm() {
               </div>
 
               <div>
-                <label htmlFor="workingDays" className="block font-medium mb-2">
-                  Working Days
+                <label className="block font-medium mb-3">
+                  Working Days <span className="text-red-500">*</span>
                 </label>
-                <select
-                  id="workingDays"
-                  name="operatingHours.workingDays"
-                  multiple
-                  value={formData.operatingHours.workingDays}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition h-32"
-                  size={5}
-                >
-                  {WORKING_DAYS.map(day => (
-                    <option key={day.value} value={day.value}>
-                      {day.label}
-                    </option>
-                  ))}
-                </select>
-                <p className="text-sm text-gray-500 mt-1">
-                  Hold Ctrl/Cmd to select multiple days
+                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2">
+                  {WORKING_DAYS.map((day) => {
+                    const isSelected = formData.operatingHours.workingDays.includes(day.value);
+                    return (
+                      <button
+                        key={day.value}
+                        type="button"
+                        onClick={() => toggleWorkingDay(day.value)}
+                        className={`py-2 px-1 text-sm font-semibold rounded-lg border transition-all duration-200 ${
+                          isSelected
+                            ? "bg-red-600 text-white border-red-600 shadow-md"
+                            : "bg-white text-gray-600 border-gray-300 hover:border-red-400 hover:bg-red-50"
+                        } ${shouldShowError("operatingHours.workingDays") ? "border-red-500" : ""}`}
+                      >
+                        {day.label}
+                      </button>
+                    );
+                  })}
+                </div>
+                {shouldShowError("operatingHours.workingDays") && (
+                  <p className="text-red-500 text-sm mt-1 flex items-center">
+                    <span className="mr-1">⚠</span> {errors["operatingHours.workingDays"]}
+                  </p>
+                )}
+                <p className="text-sm text-gray-500 mt-2">
+                  Click to select the days your facility is operational.
                 </p>
               </div>
 
@@ -769,46 +756,17 @@ export default function FacilityRegisterForm() {
                 </label>
               </div>
             </div>
-          )}
 
           {/* Navigation Buttons */}
-          <div className={`flex ${step > 1 ? 'justify-between' : 'justify-end'} pt-6 border-t`}>
-            {step > 1 && (
-              <button
-                type="button"
-                onClick={handleBack}
-                className="px-6 py-2.5 bg-gray-200 text-gray-900 rounded-lg hover:bg-gray-300 transition font-medium"
-                disabled={isSubmitting}
-              >
-                Back
-              </button>
-            )}
-            
-            {step < 3 ? (
-              <button
-                type="button"
-                onClick={handleNext}
-                className="px-6 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium"
-              >
-                Next Step
-              </button>
-            ) : (
+          <div className="flex justify-end pt-6 border-t font-semibold">
                <button
-                type="button" // Must be type="button"
-                onClick={handleSubmit} // Must call handleSubmit manually
+                type="button" 
+                onClick={handleSubmit} 
                 disabled={isSubmitting}
-                className="px-6 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                className="w-full md:w-auto px-8 py-4 bg-red-600 text-white rounded-lg hover:bg-red-700 transition disabled:opacity-50 flex justify-center items-center font-bold text-lg"
               >
-                {isSubmitting ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                    Registering...
-                  </>
-                ) : (
-                  "Register Facility"
-                )}
+                {isSubmitting ? "Registering Facility..." : "Complete Registration"}
               </button>
-            )}
           </div>
         </form>
       </div>

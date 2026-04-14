@@ -1,3 +1,4 @@
+import API_BASE_URL from "../../utils/apiConfig.js";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import axios from "axios";
 import { toast, Toaster } from "react-hot-toast";
@@ -19,7 +20,7 @@ import {
 } from "lucide-react";
 
 // NOTE: Ensure this URL matches your running backend API endpoint
-const API_BASE_URL = "http://localhost:5000/api";
+const API_BASE_URL = `${API_BASE_URL}`;
 
 const STATUS_OPTIONS = [
   { value: "all", label: "All Camps" },

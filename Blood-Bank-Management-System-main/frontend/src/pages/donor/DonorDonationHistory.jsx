@@ -1,3 +1,4 @@
+import API_BASE_URL from "../../utils/apiConfig.js";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import {
@@ -15,15 +16,18 @@ import {
   Star,
   Share2,
   FileText,
+  CheckCircle,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
+import { jsPDF } from "jspdf";
 
-const API_URL = "http://localhost:5000/api/donor";
+const API_URL = `${API_BASE_URL}/donor`;
 
 const DonorDonationHistory = () => {
   const [history, setHistory] = useState([]);
   const [filtered, setFiltered] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [donorInfo, setDonorInfo] = useState(null);
   const [stats, setStats] = useState({
     totalDonations: 0,
     totalUnits: 0,
@@ -36,9 +40,10 @@ const DonorDonationHistory = () => {
   const [filterType, setFilterType] = useState("all");
   const [sortBy, setSortBy] = useState("date-desc");
 
-  // Fetch History
-  const fetchHistory = async () => {
+  // Fetch History & Profile
+  const fetchData = async () => {
     try {
+      setLoading(true);
       const token = localStorage.getItem("token");
 
       if (!token) {
@@ -47,17 +52,25 @@ const DonorDonationHistory = () => {
         return;
       }
 
-      const res = await axios.get(`${API_URL}/history`, {
+      // Fetch History
+      const historyRes = await axios.get(`${API_URL}/history`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      let data =
-        res.data.history ||
-        res.data.donations ||
-        (Array.isArray(res.data) ? res.data : []);
-      console.log("Fetched donation history:", data);
+      // Fetch Profile for Certificate Name
+      const profileRes = await axios.get(`${API_URL}/profile`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-      // Sort by date descending initially
+      if (profileRes.data?.donor) {
+        setDonorInfo(profileRes.data.donor);
+      }
+
+      let data =
+        historyRes.data.history ||
+        historyRes.data.donations ||
+        (Array.isArray(historyRes.data) ? historyRes.data : []);
+      
       data.sort(
         (a, b) =>
           new Date(b.donationDate || b.date) -
@@ -69,13 +82,10 @@ const DonorDonationHistory = () => {
       calculateStats(data);
     } catch (err) {
       console.error(err);
-      if (err.response?.status === 401) {
-        toast.error("Session expired. Please login again.");
-      } else {
-        toast.error("Failed to load donation history");
-      }
+      toast.error("Failed to load your journey data");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   // Calculate statistics
@@ -221,8 +231,106 @@ const DonorDonationHistory = () => {
     toast.success("Data exported successfully!");
   };
 
+  // Generate Digital Certificate
+  const generateCertificate = (item) => {
+    if (!donorInfo) {
+      toast.error("Donor information not loaded yet.");
+      return;
+    }
+
+    const doc = new jsPDF({
+      orientation: "landscape",
+      unit: "mm",
+      format: "a4",
+    });
+
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+
+    // 1. MAROON BORDER FRAME
+    doc.setDrawColor(153, 27, 27); // Maroon
+    doc.setLineWidth(1.5);
+    doc.rect(5, 5, pageWidth - 10, pageHeight - 10);
+    doc.rect(7, 7, pageWidth - 14, pageHeight - 14);
+
+    // 2. HEADER
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(34);
+    doc.setTextColor(153, 27, 27);
+    doc.text("CERTIFICATE OF APPRECIATION", pageWidth / 2, 40, { align: "center" });
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(14);
+    doc.setTextColor(75, 85, 99);
+    doc.text("THIS CERTIFICATE IS PROUDLY PRESENTED TO", pageWidth / 2, 55, { align: "center" });
+
+    // 3. RECIPIENT NAME
+    doc.setFont("times", "bolditalic");
+    doc.setFontSize(42);
+    doc.setTextColor(0, 0, 0);
+    doc.text(donorInfo.fullName.toUpperCase(), pageWidth / 2, 80, { align: "center" });
+
+    // underline name
+    doc.setDrawColor(153, 27, 27);
+    doc.setLineWidth(0.8);
+    doc.line(60, 85, pageWidth - 60, 85);
+
+    // 4. DESCRIPTION
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(16);
+    doc.setTextColor(55, 65, 81);
+    const date = new Date(item.donationDate || item.date).toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "long",
+        year: "numeric"
+    });
+    
+    const text = `In recognition of your noble and selfless contribution by donating blood on ${date}. Your generosity has helped in saving precious lives and strengthening our community's healthcare infrastructure.`;
+    const splitText = doc.splitTextToSize(text, pageWidth - 80);
+    doc.text(splitText, pageWidth / 2, 105, { align: "center" });
+
+    // 5. DETAILS GRID
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text("Blood Group:", 60, 145);
+    doc.text("Quantity:", 140, 145);
+    doc.text("Verified By:", 200, 145);
+
+    doc.setFont("helvetica", "normal");
+    doc.text(item.bloodGroup || donorInfo.bloodGroup, 60, 153);
+    doc.text(`${item.quantity || 1} Unit(s)`, 140, 153);
+    doc.text(item.facility || "Verified Medical Center", 200, 153);
+
+    // 6. STAMP & SIGNATURE
+    // Fake Stamp
+    doc.setDrawColor(220, 38, 38);
+    doc.setLineWidth(1);
+    doc.circle(50, 175, 15);
+    doc.setFontSize(8);
+    doc.setTextColor(220, 38, 38);
+    doc.text("OFFICIAL", 50, 173, { align: "center" });
+    doc.text("VERIFIED", 50, 177, { align: "center" });
+    doc.text("STAMP", 50, 181, { align: "center" });
+
+    // Signature Line
+    doc.setDrawColor(0, 0, 0);
+    doc.line(pageWidth - 80, 175, pageWidth - 30, 175);
+    doc.setFontSize(10);
+    doc.setTextColor(0, 0, 0);
+    doc.text("Director of Medical Services", pageWidth - 55, 182, { align: "center" });
+
+    // 7. FOOTER
+    doc.setFontSize(9);
+    doc.setTextColor(156, 163, 175);
+    doc.text("System Generated E-Certificate - No Signature Required | Blood Bank Management System", pageWidth / 2, 200, { align: "center" });
+
+    // SAVE
+    doc.save(`Blood_Donation_Certificate_${donorInfo.fullName.replace(/\s+/g, '_')}.pdf`);
+    toast.success("Certificate downloaded successfully!");
+  };
+
   useEffect(() => {
-    fetchHistory();
+    fetchData();
   }, []);
 
   useEffect(() => {
@@ -477,11 +585,24 @@ const DonorDonationHistory = () => {
                         </div>
                       </div>
 
-                      <div className="flex flex-col items-center gap-2">
-                        <div className="w-10 h-10 bg-gradient-to-r from-red-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                          +{item.quantity || 1}
+                      <div className="flex flex-col items-center gap-3">
+                        <div className="flex flex-col items-center">
+                            <div className="w-10 h-10 bg-gradient-to-r from-red-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md">
+                            +{item.quantity || 1}
+                            </div>
+                            <p className="text-[10px] font-bold text-gray-500 mt-1 uppercase">Units</p>
                         </div>
-                        <p className="text-xs text-gray-500 mt-1">Units</p>
+                        
+                        {item.verified !== false && (
+                            <button
+                                onClick={() => generateCertificate(item)}
+                                className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 text-red-600 rounded-lg text-xs font-bold hover:bg-red-600 hover:text-white transition-all border border-red-100 shadow-sm group"
+                                title="Download Donation Certificate"
+                            >
+                                <Award className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+                                Certificate
+                            </button>
+                        )}
                       </div>
                     </div>
                   </div>

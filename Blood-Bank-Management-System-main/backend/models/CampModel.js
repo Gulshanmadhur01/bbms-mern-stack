@@ -27,12 +27,42 @@ const campSchema = new mongoose.Schema({
             required: true,
             trim: true
         },
+        district: {
+            type: String,
+            trim: true
+        },
         state: {
             type: String,
             required: true,
             trim: true
         },
+        pincode: {
+            type: String,
+            trim: true
+        }
     },
+    orgType: {
+        type: String,
+        enum: ["College", "NGO", "Hospital", "Corporate", "Religious", "Other"],
+        default: "Other"
+    },
+    orgName: String,
+    organizerName: String,
+    organizerPhone: String,
+    organizerEmail: String,
+    startTime: {
+        type: String,
+        default: "09:00"
+    },
+    endTime: {
+        type: String,
+        default: "17:00"
+    },
+    estimatedParticipants: {
+        type: Number,
+        default: 0
+    },
+    remarks: String,
     date: {
         type: Date,
         required: true,
@@ -41,7 +71,6 @@ const campSchema = new mongoose.Schema({
     enddate: {
         type: Date,
         required: true
-
     },
     capacity: {
         type: Number,
@@ -55,8 +84,8 @@ const campSchema = new mongoose.Schema({
     ],
     status: {
         type: String,
-        enum: ["upcoming", "completed", "cancelled"],
-        default: "upcoming"
+        enum: ["pending", "upcoming", "completed", "cancelled"],
+        default: "pending"
     }
 }, { timestamps: true }
 

@@ -1,3 +1,4 @@
+import API_BASE_URL from "../../utils/apiConfig.js";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-hot-toast";
@@ -53,7 +54,7 @@ const DonorDirectory = () => {
       });
 
       const res = await axios.get(
-        `http://localhost:5000/api/hospital/donors?${queryParams}`,
+        `${API_BASE_URL}/hospital/donors?${queryParams}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -84,7 +85,7 @@ const DonorDirectory = () => {
     try {
       const token = localStorage.getItem("token");
       await axios.post(
-        `http://localhost:5000/api/hopital/donors/${donorId}/contact`,
+        `${API_BASE_URL}/hopital/donors/${donorId}/contact`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
