@@ -27,11 +27,11 @@ import { Download } from "lucide-react";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 import { useOutletContext, useNavigate } from "react-router-dom";
-import BloodInventoryChart from "../../components/charts/BloodInventoryChart";
 import ActivityTrendChart from "../../components/charts/ActivityTrendChart";
 import MapComponent from "../../components/MapComponent";
 import AIPredictionWidget from "../../components/AIPredictionWidget";
 import IoTTrackerWidget from "../../components/IoTTrackerWidget";
+import InventoryIntelHub from "../../components/InventoryIntelHub";
 
 const AdminDashboard = () => {
   const { userData } = useOutletContext();
@@ -310,36 +310,9 @@ const AdminDashboard = () => {
             <IoTTrackerWidget />
         </div>
 
-        {/* 🩸 Inventory Intelligence (Heatmap) */}
-        <div className="xl:col-span-2 bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-100">
-            <div className="flex items-center justify-between mb-8">
-                <div>
-                   <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
-                       <Droplet className="w-5 h-5 text-red-600" />
-                       Inventory Intelligence
-                   </h2>
-                   <p className="text-slate-400 font-medium text-sm">Aggregate stock depth across all facilities</p>
-                </div>
-                <div className="flex gap-2">
-                    <div className="w-3 h-3 rounded-full bg-red-100"></div>
-                    <div className="w-3 h-3 rounded-full bg-red-300"></div>
-                    <div className="w-3 h-3 rounded-full bg-red-600"></div>
-                </div>
-            </div>
-
-            <div className="mt-4 h-[300px]">
-              <BloodInventoryChart inventoryDepth={stats.inventoryDepth} />
-            </div>
-            
-            <div className="mt-8 flex items-center justify-between bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                <div className="flex items-center gap-3">
-                    <AlertTriangle className="w-5 h-5 text-amber-500" />
-                    <span className="text-slate-600 font-bold text-sm">
-                        {Object.values(stats.inventoryDepth || {}).filter(v => v < 5).length} Groups are currently at critical level.
-                    </span>
-                </div>
-                <button className="text-red-600 font-black text-xs uppercase tracking-widest hover:underline">Details</button>
-            </div>
+        {/* 🩸 Inventory Intelligence (Unified Hub) */}
+        <div className="xl:col-span-2">
+            <InventoryIntelHub inventoryDepth={stats.inventoryDepth} />
         </div>
 
         {/* 📢 Command Center */}

@@ -24,20 +24,35 @@ const BloodInventoryChart = ({ inventoryDepth }) => {
   };
 
   return (
-    <div className="h-64 w-full">
+    <div className="w-full h-full min-h-[200px]">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={data}
-          margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
+          margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
         >
-          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-          <XAxis dataKey="name" axisLine={false} tickLine={false} className="text-xs text-gray-600" />
-          <YAxis axisLine={false} tickLine={false} className="text-xs text-gray-600" />
-          <Tooltip 
-            cursor={{ fill: 'rgba(239, 68, 68, 0.1)' }}
-            contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+          <XAxis 
+            dataKey="name" 
+            axisLine={false} 
+            tickLine={false} 
+            tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }}
           />
-          <Bar dataKey="amount" radius={[4, 4, 0, 0]}>
+          <YAxis 
+            axisLine={false} 
+            tickLine={false} 
+            tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }}
+          />
+          <Tooltip 
+            cursor={{ fill: 'rgba(239, 68, 68, 0.05)' }}
+            contentStyle={{ 
+                borderRadius: '16px', 
+                border: 'none', 
+                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+                fontSize: '12px',
+                fontWeight: 'bold'
+            }}
+          />
+          <Bar dataKey="amount" radius={[6, 6, 0, 0]} barSize={32}>
             {data.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={getBarColor(entry.name)} />
             ))}
