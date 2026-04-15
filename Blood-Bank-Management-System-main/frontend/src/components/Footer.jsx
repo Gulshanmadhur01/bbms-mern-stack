@@ -204,7 +204,7 @@ const Footer = () => {
                </div>
                <div>
                  <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Emergency Hotline</p>
-                 <p className="text-white font-bold">1-800-BLOOD-NOW</p>
+                 <p className="text-white font-bold">+91 91423 19145</p>
                </div>
              </div>
              <div className="hidden md:flex items-center gap-3 border-l border-white/10 pl-8">

@@ -38,14 +38,10 @@ const DonorDashboard = () => {
   const fetchDashboardData = async () => {
     try {
       const token = localStorage.getItem("token");
-      console.log("🔄 Starting donor dashboard data fetch...");
-
       if (!token) {
         toast.error("Authentication required");
         return;
       }
-
-      console.log("📡 Making API requests...");
 
       const [profileRes, historyRes, statsRes] = await Promise.all([
         axios.get(`${API_URL}/profile`, {
@@ -56,18 +52,12 @@ const DonorDashboard = () => {
         }),
         axios.get(`${API_URL}/stats`, {
           headers: { Authorization: `Bearer ${token}` },
-        }).catch(() => ({ data: {} })), // Fallback if stats endpoint doesn't exist
+        }).catch(() => ({ data: {} })),
       ]);
-
-      console.log("✅ API Responses received:");
-      console.log("👤 Profile Response:", profileRes.data);
-      console.log("📜 History Response:", historyRes.data);
-      console.log("📊 Stats Response:", statsRes.data);
 
       const donorData = profileRes.data.donor || profileRes.data;
       setDonor(donorData);
 
-      // Handle different response structures for history
       let historyData = [];
       if (historyRes.data.history) {
         historyData = historyRes.data.history;
@@ -76,14 +66,34 @@ const DonorDashboard = () => {
       } else if (Array.isArray(historyRes.data)) {
         historyData = historyRes.data;
       }
-
       setHistory(historyData);
 
-      // Calculate dashboard stats
+      // 🏆 5-Tier Advanced Ranking System
       const totalDonations = historyData.length;
-      const livesImpacted = totalDonations * 3; // Each donation can save up to 3 lives
-      const achievementLevel = totalDonations >= 10 ? "Gold" : totalDonations >= 5 ? "Silver" : "Bronze";
-      const nextMilestone = totalDonations < 5 ? 5 : totalDonations < 10 ? 10 : 15;
+      const livesImpacted = totalDonations * 3;
+      
+      let achievementLevel = "Bronze Life Saver";
+      let badge = "🥉";
+      let nextMilestone = 2;
+
+      if (totalDonations >= 21) {
+        achievementLevel = "Blood Banking Legend";
+        badge = "💎";
+        nextMilestone = totalDonations;
+      } else if (totalDonations >= 11) {
+        achievementLevel = "Guardian Angel";
+        badge = "🛡️";
+        nextMilestone = 21;
+      } else if (totalDonations >= 6) {
+        achievementLevel = "Super Hero";
+        badge = "👑";
+        nextMilestone = 11;
+      } else if (totalDonations >= 2) {
+        achievementLevel = "Safe Haven Hero";
+        badge = "🥈";
+        nextMilestone = 6;
+      }
+
       const completionRate = Math.min(100, (totalDonations / nextMilestone) * 100);
 
       setDashboard({
@@ -93,6 +103,7 @@ const DonorDashboard = () => {
           achievementLevel,
           nextMilestone,
           completionRate,
+          badge,
           ...statsRes.data
         },
         recentActivity: historyData.slice(0, 5)
@@ -100,13 +111,11 @@ const DonorDashboard = () => {
 
     } catch (error) {
       console.error("🚨 Donor Dashboard Error:", error);
-      const message = error.response?.data?.message || "Failed to load donor dashboard data";
-      toast.error(message);
+      toast.error("Failed to load donor dashboard data");
     }
   };
 
   const handleRefresh = async () => {
-    console.log("🔄 Manual refresh triggered");
     setRefreshing(true);
     await fetchDashboardData();
     setRefreshing(false);
@@ -114,24 +123,13 @@ const DonorDashboard = () => {
   };
 
   useEffect(() => {
-    console.log("🎯 Donor Dashboard component mounted");
     const loadData = async () => {
       setLoading(true);
       await fetchDashboardData();
       setLoading(false);
-      console.log("🏁 Donor dashboard data loading completed");
     };
     loadData();
   }, []);
-
-  // Debug current state
-  console.log("📊 Current Donor State:", {
-    dashboard: dashboard,
-    donor: donor,
-    history: history,
-    loading: loading,
-    historyLength: history?.length,
-  });
 
   if (loading) {
     return (
@@ -140,62 +138,55 @@ const DonorDashboard = () => {
           <div className="animate-pulse mb-4">
             <Heart className="w-12 h-12 text-red-500 mx-auto" />
           </div>
-          <h2 className="text-xl font-semibold text-gray-700 mb-2">
-            Loading Donor Dashboard
-          </h2>
-          <p className="text-gray-500">Preparing your donation journey...</p>
+          <h2 className="text-xl font-semibold text-gray-700">Loading Dashboard...</h2>
         </div>
       </div>
     );
   }
 
   const isEligible = donor?.eligibleToDonate || false;
-  const nextDonationDate = donor?.nextEligibleDate ? new Date(donor.nextEligibleDate) : null;
-  const daysUntilEligible = nextDonationDate ? Math.ceil((nextDonationDate - new Date()) / (1000 * 60 * 60 * 24)) : 0;
+  const lastDonation = donor?.lastDonationDate ? new Date(donor.lastDonationDate) : null;
+  const nextEligibleDate = lastDonation ? new Date(lastDonation.getTime() + 90 * 24 * 60 * 60 * 1000) : null;
+  const daysUntilEligible = nextEligibleDate ? Math.ceil((nextEligibleDate - new Date()) / (1000 * 60 * 60 * 24)) : 0;
 
   const handleDownloadCertificate = () => {
-    // Basic certificate implementation using a new window for printing
     const printWindow = window.open('', '_blank');
+    const rank = dashboard?.stats?.achievementLevel || "Bronze Life Saver";
+    const badge = dashboard?.stats?.badge || "🥉";
+    const donorName = donor?.fullName || 'Valued Donor';
+
     printWindow.document.write(`
       <html>
         <head>
-          <title>Donation Certificate - Blood Bank Management System</title>
+          <title>Award of Valor - ${donorName}</title>
           <style>
-            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; text-align: center; color: #333; }
-            .cert-container { border: 10px double #8b0000; padding: 50px; background: #fffaf0; border-radius: 20px; }
-            .logo { font-size: 40px; margin-bottom: 20px; }
-            h1 { color: #8b0000; font-size: 48px; border-bottom: 2px solid #8b0000; display: inline-block; padding-bottom: 10px; }
-            .name { font-size: 32px; font-weight: bold; margin: 30px 0; font-style: italic; }
-            .content { font-size: 20px; line-height: 1.6; }
-            .footer { margin-top: 50px; display: flex; justify-content: space-between; font-size: 16px; }
-            .seal { font-size: 60px; opacity: 0.5; }
+            @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Great+Vibes&family=Montserrat:wght@400;700&display=swap');
+            body { margin: 0; padding: 0; background: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: 'Montserrat', sans-serif; }
+            .cert { width: 850px; height: 600px; padding: 40px; border: 15px solid #8b0000; text-align: center; position: relative; box-sizing: border-box; }
+            .header { font-family: 'Cinzel', serif; color: #8b0000; font-size: 40px; text-transform: uppercase; letter-spacing: 5px; }
+            .name { font-family: 'Great Vibes', cursive; font-size: 60px; margin: 20px 0; border-bottom: 2px solid #ccc; display: inline-block; min-width: 400px; }
+            .rank-info { font-size: 24px; font-weight: 700; color: #8b0000; margin-top: 20px; }
+            .badge { font-size: 60px; margin: 10px 0; }
+            .footer { margin-top: 50px; display: flex; justify-content: space-around; width: 100%; }
+            .sign { border-top: 2px solid #333; width: 180px; padding-top: 8px; font-size: 14px; font-weight: bold; }
           </style>
         </head>
         <body>
-          <div class="cert-container">
-            <div class="logo">🩸</div>
-            <h1>Certificate of Appreciation</h1>
-            <p class="content">This is to certify that</p>
-            <div class="name">${donor?.name || 'Valued Donor'}</div>
-            <p class="content">
-              has generously donated blood at our facility on <b>${new Date().toLocaleDateString()}</b>.<br>
-              Your selfless contribution helps save lives and strengthens our community.
-            </p>
-            <div class="seal">OFFICIAL SEAL</div>
+          <div class="cert">
+            <h1 class="header">Certificate of Appreciation</h1>
+            <p style="font-size: 18px; color: #666;">This recognizes the heroic contribution of</p>
+            <div class="name">${donorName}</div>
+            <p style="font-size: 18px; color: #666;">For achieving the advanced rank of</p>
+            <div class="rank-info">${rank}</div>
+            <div class="badge">${badge}</div>
+            <p style="max-width: 80%; margin: 20px auto; font-style: italic;">"Your selfless blood donation stands as a beacon of hope, proving that one act of kindness can save three lives."</p>
             <div class="footer">
-              <div>
-                <p>_______________________</p>
-                <p>Authority Signature</p>
-              </div>
-              <div>
-                <p>Date: ${new Date().toLocaleDateString()}</p>
-                <p>Certificate ID: BBMS-${Math.random().toString(36).substr(2, 9).toUpperCase()}</p>
-              </div>
+              <div class="sign">Medical Director</div>
+              <div style="font-family: monospace; font-size: 10px; align-self: center;">REF: BBMS-${Math.random().toString(36).substr(2, 9).toUpperCase()}</div>
+              <div class="sign">Head of Operations</div>
             </div>
           </div>
-          <script>
-            window.onload = function() { window.print(); window.close(); };
-          </script>
+          <script>window.onload = function() { setTimeout(() => { window.print(); window.close(); }, 1000); };</script>
         </body>
       </html>
     `);
@@ -203,397 +194,201 @@ const DonorDashboard = () => {
   };
 
   const handleShareAchievement = () => {
-    const shareText = `I just donated blood through the Blood Bank Management System! Join me in saving lives. 🩸 #BloodDonor #BBMS`;
+    const shareText = `I am a ${dashboard?.stats?.achievementLevel} on Blood-Sync! I've saved lives through blood donation. 🩸`;
     if (navigator.share) {
-      navigator.share({
-        title: 'My Blood Donation Impact',
-        text: shareText,
-        url: window.location.origin,
-      }).catch(console.error);
+      navigator.share({ title: 'My Impact', text: shareText, url: window.location.origin }).catch(console.error);
     } else {
-      navigator.clipboard.writeText(`${shareText} ${window.location.origin}`);
+      navigator.clipboard.writeText(shareText);
       toast.success("Impact message copied to clipboard!");
     }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-50 to-white p-6">
-      {/* ... previous content ... */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
-            <div className="p-2 bg-red-100 rounded-xl">
-              <Heart className="w-6 h-6 text-red-600" />
-            </div>
-            Donor Dashboard
+             <Heart className="w-8 h-8 text-red-600" /> Donor Dashboard
           </h1>
-          <p className="text-gray-600 mt-2">
-            Track your donation journey and impact
-          </p>
+          <p className="text-gray-600">Track your heroic journey and lifesaving impact</p>
         </div>
-
         <button
           onClick={handleRefresh}
-          disabled={refreshing}
-          className="mt-4 lg:mt-0 flex items-center gap-2 px-4 py-2 bg-white border border-red-200 rounded-lg text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
+          className="flex items-center gap-2 px-6 py-2 bg-white border-2 border-red-100 rounded-xl text-red-600 font-bold hover:bg-red-50 transition-all shadow-sm"
         >
           <RefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} />
-          {refreshing ? "Refreshing..." : "Refresh Data"}
+          {refreshing ? "Updating..." : "Refresh Data"}
         </button>
       </div>
 
-      {/* Eligibility Banner */}
-      {!isEligible && nextDonationDate && (
-        <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-xl p-4 flex items-center gap-3">
-          <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0" />
-          <div>
-            <p className="font-medium text-yellow-800">Next Donation Available</p>
-            <p className="text-yellow-600 text-sm">
-              You can donate again in {daysUntilEligible} day{daysUntilEligible !== 1 ? 's' : ''}
-            </p>
+      {/* Rank & Progress Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+        <div className="lg:col-span-2 bg-white rounded-3xl shadow-xl border border-red-50 p-8">
+          <div className="flex justify-between items-center mb-6">
+            <div>
+               <p className="text-red-500 font-bold text-xs uppercase tracking-widest mb-1">Current Standing</p>
+               <h2 className="text-2xl font-black text-gray-800 flex items-center gap-2">
+                 {dashboard?.stats?.achievementLevel} {dashboard?.stats?.badge}
+               </h2>
+            </div>
+            <div className={`px-4 py-2 rounded-2xl font-black text-xs uppercase tracking-tighter ${isEligible ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+               {isEligible ? "READY TO SAVE LIVES" : `COOLING DOWN: ${daysUntilEligible}D`}
+            </div>
+          </div>
+          
+          <div className="relative h-4 bg-gray-100 rounded-full overflow-hidden mb-4">
+             <div 
+               className="absolute top-0 left-0 h-full bg-gradient-to-r from-red-500 to-red-600 transition-all duration-1000"
+               style={{ width: `${dashboard?.stats?.completionRate}%` }}
+             ></div>
+          </div>
+          
+          <div className="flex justify-between text-xs font-bold text-gray-400">
+             <span>Level Progress</span>
+             <span className="text-red-600">{dashboard?.stats?.totalDonations} / {dashboard?.stats?.nextMilestone} Donations</span>
           </div>
         </div>
-      )}
 
-      {isEligible && (
-        <div className="mb-6 bg-green-50 border border-green-200 rounded-xl p-4 flex items-center gap-3">
-          <AlertCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
-          <div>
-            <p className="font-medium text-green-800">Ready to Donate!</p>
-            <p className="text-green-600 text-sm">
-              You are eligible to donate blood now
-            </p>
-          </div>
+        <div className="bg-gradient-to-br from-red-600 to-red-800 rounded-3xl p-8 text-white shadow-2xl relative overflow-hidden">
+           <div className="relative z-10">
+              <p className="text-red-200 font-bold text-xs uppercase tracking-widest mb-2">Lives Impacted</p>
+              <h3 className="text-6xl font-black mb-4">{dashboard?.stats?.livesImpacted || 0}</h3>
+              <p className="text-red-100 text-xs italic opacity-80">"Your blood saved up to {dashboard?.stats?.livesImpacted} people from critical conditions. You are a real-world hero."</p>
+           </div>
+           <Droplet className="absolute -bottom-10 -right-10 w-48 h-48 text-white/10" />
         </div>
-      )}
+      </div>
 
-      {/* Donor Profile Card */}
-      {donor && (
-        <div className="bg-white rounded-2xl shadow-lg border border-red-100 p-6 mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
-              <User className="w-5 h-5 text-red-600" />
-              Donor Profile
-            </h2>
-            <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-              isEligible ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"
-            }`}>
-              {isEligible ? "Eligible" : "Not Eligible"}
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <LabInfo
-              icon={<Mail className="w-4 h-4" />}
-              label="Email"
-              value={donor.email}
-            />
-            <LabInfo
-              icon={<Phone className="w-4 h-4" />}
-              label="Phone"
-              value={donor.phone}
-            />
-            <LabInfo
-              icon={<Droplet className="w-4 h-4" />}
-              label="Blood Type"
-              value={donor.bloodGroup}
-            />
-            <LabInfo
-              icon={<MapPin className="w-4 h-4" />}
-              label="Location"
-              value={`${donor.address?.city || 'N/A'}, ${donor.address?.state || 'N/A'}`}
-              truncate
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Key Metrics Grid */}
+      {/* Metric Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <MetricCard
-          icon={<Droplet className="w-6 h-6" />}
-          label="Total Donations"
-          value={dashboard?.stats?.totalDonations || 0}
-          subtitle={`${dashboard?.stats?.nextMilestone || 0} to next milestone`}
-          color="red"
-        />
-        <MetricCard
-          icon={<Users className="w-6 h-6" />}
-          label="Lives Impacted"
-          value={dashboard?.stats?.livesImpacted || 0}
-          subtitle="3 lives per donation"
-          color="green"
-        />
-        <MetricCard
-          icon={<Award className="w-6 h-6" />}
-          label="Achievement Level"
-          value={dashboard?.stats?.achievementLevel || "Bronze"}
-          subtitle="Keep donating to level up"
-          color="purple"
-        />
-        <MetricCard
-          icon={<Calendar className="w-6 h-6" />}
-          label="Next Eligible"
-          value={donor?.nextEligibleDate ? new Date(donor.nextEligibleDate).toLocaleDateString() : "Now"}
-          subtitle={isEligible ? "Ready to donate" : `${daysUntilEligible} days left`}
-          color="blue"
-        />
+        <MetricCard icon={<Droplet />} label="Donations" value={dashboard?.stats?.totalDonations || 0} color="red" />
+        <MetricCard icon={<Award />} label="Rank" value={dashboard?.stats?.achievementLevel || "Bronze"} color="purple" />
+        <MetricCard icon={<Shield />} label="Eligibility" value={isEligible ? "ACTIVE" : "PENDING"} color="green" />
+        <MetricCard icon={<Calendar />} label="Next Goal" value={isEligible ? "NOW" : new Date(nextEligibleDate).toLocaleDateString()} color="blue" />
       </div>
 
+      {/* Lower Sections */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Donation History Section */}
-        <Section
-          title="Donation History"
-          icon={<Activity className="w-5 h-5" />}
-          subtitle="Your blood donation journey"
-        >
-          {history.length > 0 ? (
-            <div className="space-y-3">
-              {history.slice(0, 5).map((donation, index) => (
-                <DonationHistoryItem key={donation._id || index} donation={donation} />
-              ))}
-            </div>
-          ) : (
-            <EmptyState
-              icon={<Droplet className="w-8 h-8" />}
-              message="No donation history yet"
-              actionText="Make your first donation"
-              onAction={() => window.location.href = '/donor/camps'}
-            />
-          )}
+        {/* Donation History */}
+        <Section title="Donation History" icon={<Activity className="text-red-600" />}>
+           {history.length > 0 ? (
+             <div className="space-y-4">
+                {history.map((item, idx) => (
+                  <DonationHistoryItem key={idx} donation={item} />
+                ))}
+             </div>
+           ) : (
+             <EmptyState icon={<Droplet />} message="Your donation journey starts here!" actionText="Register for Camp" onAction={() => window.location.href='/donor/camps'} />
+           )}
         </Section>
 
-        {/* Recent Activity Section */}
-        <Section
-          title="Recent Activity"
-          icon={<Clock className="w-5 h-5" />}
-          subtitle="Latest updates and achievements"
-        >
-          {dashboard?.recentActivity?.length > 0 ? (
-            <div className="space-y-4">
-              {dashboard.recentActivity.map((activity, index) => (
-                <ActivityCard key={activity._id || index} activity={activity} />
-              ))}
-            </div>
-          ) : (
-            <EmptyState
-              icon={<Activity className="w-8 h-8" />}
-              message="No recent activity"
-            />
-          )}
-        </Section>
-      </div>
+        {/* Quick Actions */}
+        <div className="space-y-6">
+           <Section title="Rewards & Actions" icon={<Award className="text-purple-600" />}>
+              <div className="grid grid-cols-2 gap-4">
+                  <ActionBtn icon={<Download />} title="Certificate" sub="Download achievement" color="blue" onClick={handleDownloadCertificate} />
+                  <ActionBtn icon={<Share2 />} title="Share Rank" sub="Tell your impact" color="green" onClick={handleShareAchievement} />
+                  <ActionBtn icon={<Calendar />} title="Book Appointment" sub="Schedule next" color="red" onClick={() => window.location.href='/donor/camps'} />
+                  <ActionBtn icon={<Users />} title="Invite" sub="Refer a friend" color="purple" onClick={handleShareAchievement} />
+              </div>
+           </Section>
 
-      {/* Quick Actions Section */}
-      <Section
-        title="Quick Actions"
-        icon={<Shield className="w-5 h-5" />}
-        subtitle="Manage your donor profile"
-        className="mt-8"
-      >
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <ActionCard
-            icon={<Download className="w-5 h-5" />}
-            title="Download Certificate"
-            description="Get your donation certificate"
-            onClick={handleDownloadCertificate}
-            color="blue"
-          />
-          <ActionCard
-            icon={<Share2 className="w-5 h-5" />}
-            title="Share Achievement"
-            description="Share your impact with others"
-            onClick={handleShareAchievement}
-            color="green"
-          />
-          <ActionCard
-            icon={<Calendar className="w-5 h-5" />}
-            title="Schedule Donation"
-            description="Book your next donation"
-            onClick={() => window.location.href = '/donor/camps'}
-            color="red"
-          />
-          <ActionCard
-            icon={<Users className="w-5 h-5" />}
-            title="Invite Friends"
-            description="Grow the donor community"
-            onClick={handleShareAchievement}
-            color="purple"
-          />
+           {/* Health Stats */}
+           <Section title="Medical Profile" icon={<Shield className="text-green-600" />}>
+              <div className="grid grid-cols-2 gap-4">
+                 <div className="bg-gray-50 p-4 rounded-2xl">
+                    <p className="text-xs text-gray-500 font-bold mb-1 uppercase">Blood Group</p>
+                    <p className="text-xl font-black text-red-600">{donor?.bloodGroup || 'N/A'}</p>
+                 </div>
+                 <div className="bg-gray-50 p-4 rounded-2xl">
+                    <p className="text-xs text-gray-500 font-bold mb-1 uppercase">Age / Gender</p>
+                    <p className="text-xl font-black text-gray-800">{donor?.age || '?' } • {donor?.gender?.[0] || '?'}</p>
+                 </div>
+              </div>
+           </Section>
         </div>
-      </Section>
-
-      {/* Health Stats Section */}
-      {donor && (
-        <Section
-          title="Health Overview"
-          icon={<Heart className="w-5 h-5" />}
-          subtitle="Your health metrics"
-          className="mt-8"
-        >
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <HealthStat
-              label="Age"
-              value={donor.age || "N/A"}
-              icon={<User className="w-4 h-4" />}
-            />
-            <HealthStat
-              label="Weight"
-              value={donor.weight ? `${donor.weight} kg` : "N/A"}
-              icon={<Activity className="w-4 h-4" />}
-            />
-            <HealthStat
-              label="Last Donation"
-              value={donor.lastDonationDate ? new Date(donor.lastDonationDate).toLocaleDateString() : "Never"}
-              icon={<Calendar className="w-4 h-4" />}
-            />
-            <HealthStat
-              label="Donor Since"
-              value={donor.createdAt ? new Date(donor.createdAt).getFullYear() : new Date().getFullYear()}
-              icon={<Award className="w-4 h-4" />}
-            />
-          </div>
-        </Section>
-      )}
+      </div>
     </div>
   );
 };
 
-// Reusable Components (same as your blood lab dashboard)
-const MetricCard = ({ icon, label, value, subtitle, color, alert = false }) => {
-  const colorClasses = {
-    blue: { border: "border-l-blue-400", bg: "bg-blue-100", text: "text-blue-600" },
-    green: { border: "border-l-green-400", bg: "bg-green-100", text: "text-green-600" },
-    red: { border: "border-l-red-400", bg: "bg-red-100", text: "text-red-600" },
-    purple: { border: "border-l-purple-400", bg: "bg-purple-100", text: "text-purple-600" },
+// Sub-components
+const MetricCard = ({ icon, label, value, color, subtitle }) => {
+  const colors = {
+    red: "bg-red-50 text-red-600 border-red-100",
+    green: "bg-green-50 text-green-700 border-green-100",
+    blue: "bg-blue-50 text-blue-600 border-blue-100",
+    purple: "bg-purple-50 text-purple-600 border-purple-100"
   };
-
-  const colors = colorClasses[color] || colorClasses.blue;
-
   return (
-    <div className={`bg-white rounded-xl shadow-lg border-l-4 ${alert ? "border-l-red-400" : colors.border} p-5 relative overflow-hidden`}>
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm font-medium text-gray-600 mb-1">{label}</p>
-          <p className="text-2xl font-bold text-gray-800">{value}</p>
-          {subtitle && <p className={`text-xs ${alert ? "text-red-600" : "text-gray-500"} mt-1`}>{subtitle}</p>}
-        </div>
-        <div className={`p-3 rounded-lg ${alert ? "bg-red-100 text-red-600" : `${colors.bg} ${colors.text}`}`}>
-          {icon}
-        </div>
+    <div className={`bg-white p-6 rounded-3xl border shadow-sm ${colors[color] || colors.red}`}>
+      <div className="flex items-center gap-4">
+         <div className={`p-3 rounded-2xl bg-white shadow-sm`}>{icon}</div>
+         <div>
+            <p className="text-gray-500 font-bold text-xs uppercase">{label}</p>
+            <p className="text-xl font-black text-gray-800">{value}</p>
+            {subtitle && <p className="text-[10px] mt-1 font-bold">{subtitle}</p>}
+         </div>
       </div>
     </div>
   );
 };
 
-const Section = ({ title, icon, subtitle, children, className = "" }) => (
-  <div className={`bg-white rounded-2xl shadow-lg border border-red-50 p-6 ${className}`}>
-    <div className="flex items-center justify-between mb-4">
-      <div>
-        <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-          {icon} {title}
-        </h3>
-        {subtitle && <p className="text-sm text-gray-600 mt-1">{subtitle}</p>}
-      </div>
+const Section = ({ title, icon, children }) => (
+  <div className="bg-white rounded-3xl shadow-xl border border-red-50 p-6">
+    <div className="flex items-center gap-3 mb-6">
+       <div className="p-2 bg-gray-50 rounded-xl">{icon}</div>
+       <h3 className="font-black text-gray-800 text-lg uppercase tracking-tighter">{title}</h3>
     </div>
     {children}
   </div>
 );
 
-const LabInfo = ({ icon, label, value, truncate = false }) => (
-  <div className="flex items-start gap-3">
-    <div className="p-2 bg-red-100 rounded-lg text-red-600 mt-1">{icon}</div>
-    <div>
-      <p className="text-xs text-gray-500 uppercase tracking-wide">{label}</p>
-      <p className={`font-medium text-gray-800 ${truncate ? "truncate" : ""}`}>
-        {value || "—"}
-      </p>
-    </div>
-  </div>
-);
-
 const DonationHistoryItem = ({ donation }) => (
-  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-    <div className="flex items-center gap-3">
-      <div className="p-2 bg-red-100 rounded-lg text-red-600">
-        <Droplet className="w-4 h-4" />
-      </div>
-      <div>
-        <p className="font-medium text-gray-800">{donation.facility || "Blood Donation Camp"}</p>
-        <p className="text-xs text-gray-500">
-          {new Date(donation.donationDate || donation.date).toLocaleDateString()} • {donation.bloodType || donation.bloodGroup}
-        </p>
-      </div>
+  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl hover:bg-red-50/50 transition-colors group">
+    <div className="flex items-center gap-4">
+       <div className="w-12 h-12 rounded-xl bg-white shadow-sm flex items-center justify-center text-red-600 group-hover:bg-red-600 group-hover:text-white transition-all">
+          <Droplet className="w-6 h-6" />
+       </div>
+       <div>
+          <p className="font-black text-gray-800 text-sm">{donation.facility || "Verified Donation"}</p>
+          <p className="text-xs text-gray-500 font-bold">{new Date(donation.donationDate || donation.date).toLocaleDateString()}</p>
+       </div>
     </div>
     <div className="text-right">
-      <span className="font-bold text-gray-800">{donation.quantity || 1} unit</span>
-      <p className="text-xs text-green-600 mt-1">Completed</p>
+       <p className="font-black text-red-600 leading-none">{donation.quantity || 1} Unit</p>
+       <p className="text-[10px] text-green-600 font-bold mt-1">✓ VERIFIED</p>
     </div>
   </div>
 );
 
-const ActivityCard = ({ activity }) => (
-  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-    <div className="flex-1">
-      <h4 className="font-medium text-gray-800 mb-1">{activity.eventType || "Donation"}</h4>
-      <p className="text-sm text-gray-600">{activity.description || "Blood donation completed"}</p>
-    </div>
-    <div className="text-right">
-      <span className="text-xs text-gray-500">
-        {new Date(activity.date || activity.createdAt).toLocaleDateString()}
-      </span>
-    </div>
-  </div>
-);
-
-const ActionCard = ({ icon, title, description, onClick, color = "blue" }) => {
-  const colorClasses = {
-    blue: "bg-blue-50 text-blue-600 hover:bg-blue-100 border-blue-200",
-    green: "bg-green-50 text-green-600 hover:bg-green-100 border-green-200",
-    red: "bg-red-50 text-red-600 hover:bg-red-100 border-red-200",
-    purple: "bg-purple-50 text-purple-600 hover:bg-purple-100 border-purple-200",
+const ActionBtn = ({ icon, title, sub, color, onClick }) => {
+  const colors = {
+     blue: "bg-blue-600 shadow-blue-200",
+     green: "bg-green-600 shadow-green-200",
+     red: "bg-red-600 shadow-red-200",
+     purple: "bg-purple-600 shadow-purple-200"
   };
-
   return (
-    <button
-      onClick={onClick}
-      className={`p-4 rounded-xl border text-left transition-colors ${colorClasses[color]}`}
-    >
-      <div className="flex items-center gap-3 mb-2">
-        <div className="p-2 bg-white rounded-lg">{icon}</div>
-        <h4 className="font-semibold">{title}</h4>
-      </div>
-      <p className="text-sm opacity-75">{description}</p>
+    <button onClick={onClick} className={`${colors[color]} p-4 rounded-3xl text-white text-left shadow-lg hover:scale-105 transition-transform`}>
+       <div className="bg-white/20 w-8 h-8 rounded-lg flex items-center justify-center mb-2">{icon}</div>
+       <p className="font-black text-sm">{title}</p>
+       <p className="text-[10px] font-bold opacity-70">{sub}</p>
     </button>
   );
 };
 
-const HealthStat = ({ label, value, icon }) => (
-  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-    <div>
-      <p className="text-sm font-medium text-gray-600">{label}</p>
-      <p className="text-lg font-bold text-gray-800">{value}</p>
-    </div>
-    <div className="p-2 bg-red-100 rounded-lg text-red-600">
-      {icon}
-    </div>
-  </div>
-);
-
 const EmptyState = ({ icon, message, actionText, onAction }) => (
-  <div className="text-center py-8 text-gray-500">
-    <div className="bg-gray-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3">
-      {icon}
-    </div>
-    <p className="text-sm mb-3">{message}</p>
-    {actionText && onAction && (
-      <button
-        onClick={onAction}
-        className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 transition-colors"
-      >
-        {actionText}
-      </button>
-    )}
+  <div className="text-center py-12 px-6">
+     <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">
+        {React.cloneElement(icon, { size: 32 })}
+     </div>
+     <p className="text-gray-500 font-bold mb-4">{message}</p>
+     {actionText && (
+       <button onClick={onAction} className="px-6 py-2 bg-red-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-red-200 hover:bg-red-700 transition-all">
+          {actionText}
+       </button>
+     )}
   </div>
 );
 

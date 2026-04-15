@@ -72,7 +72,7 @@ const Contact = () => {
           <div className="text-center shadow-md p-8 rounded-xl hover:shadow-xl transition">
             <Phone className="w-10 h-10 text-red-600 mx-auto mb-4" />
             <h3 className="text-xl font-semibold mb-2">Emergency Helpline</h3>
-            <p className="text-gray-600">+91 98765 43210</p>
+            <p className="text-gray-600">+91 91423 19145</p>
             <p className="text-gray-600">Available 24/7</p>
           </div>
 
@@ -88,8 +88,8 @@ const Contact = () => {
           <div className="text-center shadow-md p-8 rounded-xl hover:shadow-xl transition">
             <MapPin className="w-10 h-10 text-red-600 mx-auto mb-4" />
             <h3 className="text-xl font-semibold mb-2">Head Office</h3>
-            <p className="text-gray-600">Navi Mumbai, Maharashtra</p>
-            <p className="text-gray-600">India - 410206</p>
+            <p className="text-gray-600">Nayapalli, Bhubaneswar</p>
+            <p className="text-gray-600">Odisha, India - 751012</p>
           </div>
         </div>
       </section>
@@ -107,7 +107,7 @@ const Contact = () => {
             <div className="space-y-4">
               <div className="flex items-center">
                 <Phone className="text-red-600 mr-3" />
-                <span className="text-gray-700">+91 12345 67890</span>
+                <span className="text-gray-700">+91 91423 19145</span>
               </div>
               <div className="flex items-center">
                 <Mail className="text-red-600 mr-3" />
@@ -115,17 +115,10 @@ const Contact = () => {
               </div>
               <div className="flex items-center">
                 <MapPin className="text-red-600 mr-3" />
-                <span className="text-gray-700">Navi Mumbai, Maharashtra</span>
+                <span className="text-gray-700">Nayapalli, Bhubaneswar, Odisha</span>
               </div>
             </div>
 
-            {/* Social Icons */}
-            <div className="flex gap-6 mt-8">
-              <Instagram className="w-8 h-8 text-red-600 hover:text-red-700 cursor-pointer" />
-              <Facebook className="w-8 h-8 text-red-600 hover:text-red-700 cursor-pointer" />
-              <Linkedin className="w-8 h-8 text-red-600 hover:text-red-700 cursor-pointer" />
-              <Globe className="w-8 h-8 text-red-600 hover:text-red-700 cursor-pointer" />
-            </div>
           </div>
 
           {/* FORM */}
@@ -227,12 +220,13 @@ const Contact = () => {
 
       {/* MAP SECTION */}
       <section className="mb-5">
-        <iframe
-          title="map"
-          className="w-full h-96"
-          src="https://maps.google.com/maps?q=Navi%20Mumbai&t=&z=13&ie=UTF8&iwloc=&output=embed"
-          allowFullScreen
-        ></iframe>
+          <iframe
+            title="map"
+            className="w-full h-96 group-hover:opacity-90 transition-opacity"
+            src="https://maps.google.com/maps?q=Nayapalli,%20Bhubaneswar,%20Odisha&t=&z=18&ie=UTF8&iwloc=B&output=embed"
+            allowFullScreen
+            loading="lazy"
+          ></iframe>
       </section>
 
       {/* FOOTER */}
