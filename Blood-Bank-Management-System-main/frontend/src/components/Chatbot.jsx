@@ -1,6 +1,6 @@
 import API_BASE_URL from "../utils/apiConfig.js";
 import React, { useState, useRef, useEffect } from "react";
-import { MessageSquare, X, Send, Bot, User, HeartPulse } from "lucide-react";
+import { MessageSquare, X, Send, Bot, User, HeartPulse, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 
