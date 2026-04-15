@@ -113,7 +113,7 @@ const Chatbot = () => {
             
             {/* Tooltip hint */}
             <div className="absolute -top-10 -left-6 bg-slate-900 text-white text-[10px] font-bold py-1 px-3 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-              Medical Eligibility Chat
+              AI Chatbot
             </div>
           </motion.button>
         )}
@@ -140,7 +140,7 @@ const Chatbot = () => {
                 </div>
                 <div>
                   <h3 className="text-white font-bold tracking-tight">Blood-Sync AI</h3>
-                  <p className="text-red-100 text-[10px] uppercase tracking-widest font-bold">Medical Eligibility Expert</p>
+                  <p className="text-red-100 text-[10px] uppercase tracking-widest font-bold">AI Virtual Assistant</p>
                 </div>
               </div>
               <button
