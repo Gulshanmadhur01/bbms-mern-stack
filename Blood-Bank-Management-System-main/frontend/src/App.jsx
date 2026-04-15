@@ -33,6 +33,7 @@ import BloodCenterDirectory from "./pages/BloodCenterDirectory";
 import CampSchedule from "./pages/CampSchedule";
 import CampRegistration from "./pages/CampRegistration";
 import ScrollToTop from "./components/ScrollToTop";
+import Chatbot from "./components/Chatbot";
 
 function App() {
   return (
@@ -95,6 +96,7 @@ function App() {
         </Route>
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
+      <Chatbot />
     </>
   );
 }

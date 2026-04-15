@@ -11,11 +11,18 @@ const Chatbot = () => {
   const [messages, setMessages] = useState([
     {
       sender: "bot",
-      text: "Hello! I am Blood-Sync AI. How can I help you today? (Try asking about donating, eligibility, or emergency).",
+      text: "Hello! I am Blood-Sync AI. How can I help you today? I can help check your medical eligibility for blood donation.",
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     },
   ]);
   const messagesEndRef = useRef(null);
+
+  const quickActions = [
+    { label: "Eligibility Check", text: "Am I eligible to donate blood?" },
+    { label: "Tattoo/Piercing", text: "I have a tattoo. Can I donate?" },
+    { label: "Medication", text: "I am taking medicine. Can I donate?" },
+    { label: "Recent Travel", text: "I traveled recently. Can I donate?" }
+  ];
 
   // Auto-scroll to bottom of chat
   const scrollToBottom = () => {
@@ -26,11 +33,15 @@ const Chatbot = () => {
     scrollToBottom();
   }, [messages, isOpen, isTyping]);
 
-  const handleSendMessage = async (e) => {
-    e.preventDefault();
-    if (!inputMessage.trim()) return;
+  const handleQuickAction = (text) => {
+     handleSendMessage(null, text);
+  };
 
-    const userMsgText = inputMessage;
+  const handleSendMessage = async (e, forcedText = null) => {
+    if (e) e.preventDefault();
+    const userMsgText = forcedText || inputMessage;
+    if (!userMsgText.trim()) return;
+
     // Add user message
     const newMsg = {
       sender: "user",
@@ -102,7 +113,7 @@ const Chatbot = () => {
             
             {/* Tooltip hint */}
             <div className="absolute -top-10 -left-6 bg-slate-900 text-white text-[10px] font-bold py-1 px-3 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-              Chat with AI Assistant
+              Medical Eligibility Chat
             </div>
           </motion.button>
         )}
@@ -129,7 +140,7 @@ const Chatbot = () => {
                 </div>
                 <div>
                   <h3 className="text-white font-bold tracking-tight">Blood-Sync AI</h3>
-                  <p className="text-red-100 text-[10px] uppercase tracking-widest font-bold">Online • Responds instantly</p>
+                  <p className="text-red-100 text-[10px] uppercase tracking-widest font-bold">Medical Eligibility Expert</p>
                 </div>
               </div>
               <button
@@ -142,9 +153,14 @@ const Chatbot = () => {
 
             {/* Chat Body */}
             <div className="flex-1 overflow-y-auto p-5 bg-slate-50 space-y-4">
-              <div className="text-center pb-4 mb-4 border-b border-slate-200">
-                 <HeartPulse className="w-8 h-8 text-red-300 mx-auto mb-2" />
-                 <p className="text-xs text-slate-400 font-medium">This is an automated virtual assistant designed for the Major Project demonstration.</p>
+              <div className="text-center pb-4 mb-4 border-b border-slate-100">
+                 <div className="p-2 bg-red-50 rounded-2xl w-fit mx-auto mb-2 border border-red-100">
+                    <HeartPulse className="w-6 h-6 text-red-600" />
+                 </div>
+                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest leading-relaxed">
+                    AI is providing general health information. 
+                    <span className="text-red-500 block underline">Not a substitute for official medical advice.</span>
+                 </p>
               </div>
 
               {messages.map((msg, index) => (
@@ -198,6 +214,22 @@ const Chatbot = () => {
                 </motion.div>
               )}
 
+              {/* Quick Actions Grid */}
+              {messages.length < 5 && !isTyping && (
+                 <div className="grid grid-cols-2 gap-2 mt-4">
+                    {quickActions.map((action, i) => (
+                      <button
+                        key={i}
+                        onClick={() => handleQuickAction(action.text)}
+                        className="bg-white border border-slate-200 p-2.5 rounded-xl text-[10px] font-black uppercase text-slate-600 hover:bg-red-50 hover:border-red-200 transition-all text-left flex items-center gap-2 group"
+                      >
+                         <Zap className="w-3 h-3 text-amber-500 group-hover:scale-125 transition-transform" />
+                         {action.label}
+                      </button>
+                    ))}
+                 </div>
+              )}
+
               <div ref={messagesEndRef} />
             </div>
 
@@ -211,7 +243,7 @@ const Chatbot = () => {
                   type="text"
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
-                  placeholder="Ask a question..."
+                  placeholder="Ask a medical question..."
                   className="flex-1 bg-transparent border-none focus:outline-none focus:ring-0 text-sm px-4 py-2 text-slate-700"
                 />
                 <button

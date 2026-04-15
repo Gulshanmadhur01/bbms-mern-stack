@@ -26,7 +26,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import Chatbot from "../components/Chatbot";
+import Footer from "../components/Footer";
 import BroadcastBanner from "../components/BroadcastBanner";
 
 const LandingPage = () => {
@@ -1073,7 +1073,6 @@ const LandingPage = () => {
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
       </motion.section>
 
-      <Chatbot />
       <Footer />
     </div>
   );

@@ -43,16 +43,25 @@ export const askChatbot = async (req, res) => {
 
   try {
     // Using gemini-flash-latest which is highly stable
-    const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
-
-    const prompt = `
-      You are "Blood-Sync AI" for a Blood Bank Management System.
-      Your primary languages are English and Hindi (including Hinglish).
-      Detect the language the user is speaking, and reply perfectly in that SAME language.
-      Be polite, concise, and helpful.
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-flash-latest",
+      systemInstruction: `You are "Blood-Sync AI Medical Expert". Your goal is to help donors determine if they are eligible to donate blood.
       
-      User Message: ${message}
-    `;
+      RULES:
+      1. CRITERIA: 
+         - Age: 18-65 years.
+         - Weight: Minimum 50kg.
+         - Health: Must be in good general health (no fever, flu).
+         - Tattoos/Piercings: Wait 6 months (or 12 months depending on local law).
+         - Pregnancy: Wait 1 year after childbirth.
+         - Medication: Antibiotics (wait 7 days), Aspirin (wait 48 hrs for platelets).
+         - Travel: Wait 3-12 months after visiting malaria-prone areas.
+      2. DISCLAIMER: Always mention that "The final decision is taken by the medical officer at the blood bank."
+      3. BILINGUAL: If the user asks in Hindi/Hinglish, reply in Hindi/Hinglish. If in English, reply in English.
+      4. STYLE: Professional, emphatic, and concise.`
+    });
+
+    const prompt = `User Message: ${message}`;
 
     const result = await model.generateContent(prompt);
     const response = await result.response;
