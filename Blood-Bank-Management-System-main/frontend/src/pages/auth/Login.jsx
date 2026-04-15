@@ -35,7 +35,21 @@ export default function Login() {
         body: JSON.stringify(formData),
       });
 
-      const data = await res.json();
+      // 🔍 Better response checking
+      const contentType = res.headers.get("content-type");
+      let data;
+
+      if (contentType && contentType.includes("application/json")) {
+        data = await res.json();
+      } else {
+        const text = await res.text();
+        console.error("Non-JSON response received:", text.slice(0, 200));
+        throw new Error(
+          `Server returned an invalid response format (Expected JSON, got ${contentType || "HTML"}). ` +
+          "If this is production, please check if your VITE_API_BASE_URL is set correctly in Vercel."
+        );
+      }
+
       console.log("Login response:", data);
 
       if (!res.ok) {

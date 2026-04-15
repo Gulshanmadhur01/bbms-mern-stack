@@ -1,3 +1,5 @@
+import path from "path";
+import { fileURLToPath } from "url";
 import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
@@ -15,6 +17,9 @@ import { swaggerUi, swaggerDocs } from "./openapi/index.js"
 import { startAIEngine } from "./utils/automationJob.js";
 
 dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const app = express();
 
 app.use(express.json());
@@ -77,6 +82,21 @@ mongoose
      startAIEngine();
   })
   .catch((err) => console.log("MongoDB Error ❌", err));
+
+// 🚀 Serve Static Frontend Files
+const frontendPath = path.resolve(__dirname, "../frontend/dist");
+app.use(express.static(frontendPath));
+
+// 🌐 Catch-all route to serve the frontend index.html
+// 🌐 Catch-all route to serve the frontend index.html
+// This regex matches any path that does NOT start with /api
+app.get(/^(?!\/api).+/, (req, res) => {
+  res.sendFile(path.join(frontendPath, "index.html"), (err) => {
+    if (err) {
+      res.status(500).send("Error loading frontend. Did you run 'npm run build' in the frontend folder?");
+    }
+  });
+});
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT} 🚀`));

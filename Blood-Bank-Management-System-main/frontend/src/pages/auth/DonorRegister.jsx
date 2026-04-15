@@ -292,14 +292,29 @@ export default function DonorRegisterForm() {
       });
       
       if (response.ok) {
-        const result = await response.json();
-        console.log("Donor Registered Successfully:", result);
-        toast.success("🎉 Donor Registered Successfully!");
-        navigate('/login');
+        // 🔍 Better response checking
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          const result = await response.json();
+          console.log("Donor Registered Successfully:", result);
+          toast.success("🎉 Donor Registered Successfully!");
+          navigate('/login');
+        } else {
+          const text = await response.text();
+          console.error("Non-JSON response received:", text.slice(0, 200));
+          toast.error("Server returned an invalid response format. Check console for details.");
+        }
       } else {
-        const errorData = await response.json();
-        console.error("Registration failed:", response.status, errorData);
-        toast.error(`Registration failed: ${errorData.message || 'Please try again.'}`);
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          const errorData = await response.json();
+          console.error("Registration failed:", response.status, errorData);
+          toast.error(`❌ Registration failed. Message: ${errorData.message || 'Check server logs.'}`);
+        } else {
+          const text = await response.text();
+          console.error("Non-JSON error response:", text.slice(0, 200));
+          toast.error(`❌ Registration failed with status ${response.status}. Server returned non-JSON response.`);
+        }
       }
     } catch (error) {
       console.error("Network or fetch error:", error);

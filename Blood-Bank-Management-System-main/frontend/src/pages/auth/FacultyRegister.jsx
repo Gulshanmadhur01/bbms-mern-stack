@@ -307,16 +307,28 @@ export default function FacilityRegisterForm() {
       
       // Check if the response status is 2xx (Success)
       if (response.ok) {
-        const result = await response.json();
-        console.log("Facility Data Registered Successfully:", result);
-        toast("✅ Facility Registered Successfully!");
-        // You might want to clear the form or redirect here
-        navigate('/');
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          const result = await response.json();
+          console.log("Facility Data Registered Successfully:", result);
+          toast.success("✅ Facility Registered Successfully!");
+          navigate('/');
+        } else {
+          const text = await response.text();
+          console.error("Non-JSON response received:", text.slice(0, 200));
+          toast.error("Server returned an invalid response format. Check console for details.");
+        }
       } else {
-        // Handle server-side errors (400, 500 status codes)
-        const errorData = await response.json();
-        console.error("Registration failed:", response.status, errorData);
-        alert(`❌ Registration failed. Status: ${response.status}. Message: ${errorData.message || 'Check server logs.'}`);
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          const errorData = await response.json();
+          console.error("Registration failed:", response.status, errorData);
+          toast.error(`❌ Registration failed. Message: ${errorData.message || 'Check server logs.'}`);
+        } else {
+          const text = await response.text();
+          console.error("Non-JSON error response:", text.slice(0, 200));
+          toast.error(`❌ Registration failed with status ${response.status}. Server returned non-JSON response.`);
+        }
       }
 
     } catch (error) {
